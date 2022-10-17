@@ -116,7 +116,8 @@ export const CreateNewVault = () => {
         <StyledText>Threshold</StyledText>
         <StyledSlider
           progress
-          defaultValue={25}
+          step={0.01}
+          defaultValue={25.0}
           onChange={(value) => {
             setNewSignatoryValue(value);
           }}
