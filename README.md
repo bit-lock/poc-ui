@@ -1,1 +1,1 @@
-test url : https://aws.d1rm5d771scag.amplifyapp.com/
+[Try Poc](https://aws.d2u38cdh1wlep3.amplifyapp.com)
