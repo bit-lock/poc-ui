@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
-import styled from "styled-components";
-import { ROUTE_PATH } from "../routes/ROUTE_PATH";
-import CopyIcon from "../Svg/Icons/Copy";
 import TrashIcon from "@rsuite/icons/Trash";
 import { crypto } from "@script-wiz/lib-core";
 import WizData from "@script-wiz/wiz-data";
+import { useNavigate } from "react-router-dom";
+import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
+import styled from "styled-components";
 import toastr from "toastr";
+import { ROUTE_PATH } from "../routes/ROUTE_PATH";
+import CopyIcon from "../Svg/Icons/Copy";
 
 declare var window: any;
 
