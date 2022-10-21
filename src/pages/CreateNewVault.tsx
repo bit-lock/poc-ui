@@ -7,6 +7,7 @@ import CopyIcon from "../Svg/Icons/Copy";
 import TrashIcon from "@rsuite/icons/Trash";
 import { crypto } from "@script-wiz/lib-core";
 import WizData from "@script-wiz/wiz-data";
+import toastr from "toastr";
 
 declare var window: any;
 
@@ -44,9 +45,9 @@ export const CreateNewVault = () => {
         })
         .catch((error: any) => {
           if (error.code === 4001) {
-            console.log("Please connect to MetaMask.");
+            toastr.error("Please connect to MetaMask.");
           } else {
-            console.error(error);
+            toastr.error(error.response.data);
           }
         });
     } else {
@@ -62,7 +63,7 @@ export const CreateNewVault = () => {
         .then((sgntr: string) => {
           createKeys(sgntr);
         })
-        .catch((err: any) => console.log(err));
+        .catch((err: any) => toastr.error(err.message));
     }
   }, [account, ethereum]);
 
@@ -76,8 +77,8 @@ export const CreateNewVault = () => {
       setSignature(withoutPrefixSignature);
       setPrivateKey(prvKey);
       setPublicKey(keys.publicKey.hex);
-    } catch (err) {
-      console.log(err);
+    } catch (err: any) {
+      toastr.error(err);
     }
   };
 
