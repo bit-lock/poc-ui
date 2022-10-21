@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from "react";
+import TrashIcon from "@rsuite/icons/Trash";
+import { crypto } from "@script-wiz/lib-core";
+import WizData from "@script-wiz/wiz-data";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
+import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
-import TrashIcon from "@rsuite/icons/Trash";
 
 declare var window: any;
 
@@ -22,6 +25,13 @@ export const CreateNewVault = () => {
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<Signatory[]>([{ index: 1, value: "", percent: 100 }]);
   const [newSignatoryValue, setNewSignatoryValue] = useState<number>(25);
+  const [account, setAccount] = useState<string>("");
+
+  const [signature, setSignature] = useState<string>("");
+  const [privateKey, setPrivateKey] = useState<string>();
+  const [publicKey, setPublicKey] = useState<string>();
+
+  const message = "Sign this message to access MultiBit interface.";
 
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
@@ -29,14 +39,15 @@ export const CreateNewVault = () => {
         .request({ method: "eth_requestAccounts" })
         .then((accounts: Array<string>) => {
           signatories[0].value = accounts[0];
+          setAccount(accounts[0]);
           const clonedScripts = [...signatories];
           setSignatories(clonedScripts);
         })
         .catch((error: any) => {
           if (error.code === 4001) {
-            console.log("Please connect to MetaMask.");
+            toastr.error("Please connect to MetaMask.");
           } else {
-            console.error(error);
+            toastr.error(error.response.data);
           }
         });
     } else {
@@ -44,6 +55,32 @@ export const CreateNewVault = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ethereum]);
+
+  useEffect(() => {
+    if (account !== "") {
+      ethereum
+        .request({ method: "personal_sign", params: [message, account] })
+        .then((sgntr: string) => {
+          createKeys(sgntr);
+        })
+        .catch((err: any) => toastr.error(err.message));
+    }
+  }, [account, ethereum]);
+
+  const createKeys = (signature: string) => {
+    try {
+      const withoutPrefixSignature = signature.slice(2);
+      const prvKey = crypto.sha256(WizData.fromHex(withoutPrefixSignature)).toString();
+
+      const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
+
+      setSignature(withoutPrefixSignature);
+      setPrivateKey(prvKey);
+      setPublicKey(keys.publicKey.hex);
+    } catch (err: any) {
+      toastr.error(err);
+    }
+  };
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
@@ -116,7 +153,8 @@ export const CreateNewVault = () => {
         <StyledText>Threshold</StyledText>
         <StyledSlider
           progress
-          defaultValue={25}
+          step={0.01}
+          defaultValue={25.0}
           onChange={(value) => {
             setNewSignatoryValue(value);
           }}
