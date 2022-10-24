@@ -16,19 +16,17 @@ export class Web3Lib {
     this.web3.eth.accounts.wallet.add(mnemonicWallet.privateKey);
 
     this.initContract();
-
-    console.log(this.getSignatories("0xbae7c63eee908d136c6df56f4fba9805e7bc29c5cd304a2f0e8bcabe812d81e0"));
   }
 
   private initContract = () => {
     this.contract = new this.web3.eth.Contract(BtcVault.abi as any, BtcVault.address);
   };
 
-  initialVault = async (address: string) => {
-    const name = "Satoshi's Vault";
-    const threshold = 30;
-    const signatories = Array.from({ length: 2 }, () => ethers.Wallet.createRandom().address);
-    const shares = Array.from({ length: 2 }, () => Math.floor(Math.random() * 100));
+  initialVault = async (address: string, name: string, threshold: number, signatories: string[], shares: number[]) => {
+    // const name = "Satoshi's Vault";
+    // const threshold = 30;
+    // const signatories = Array.from({ length: 2 }, () => ethers.Wallet.createRandom().address);
+    // const shares = Array.from({ length: 2 }, () => Math.floor(Math.random() * 100));
 
     const gasPrice = await this.web3.eth.getGasPrice();
 
