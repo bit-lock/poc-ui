@@ -6,7 +6,7 @@ import styled from "styled-components";
 import toastr from "toastr";
 
 export const FetchUtxo = () => {
-  const [address, setAddress] = useState<string>("tb1qqy3k9ynmt0emvrjg3smhsku86hgflu3sk422y86qz5luvdfnkw2qzq6sgr");
+  const [address, setAddress] = useState<string>("");
   const [utxoSets, setUtxoSets] = useState<Array<{ txId: string; vout: number; value: number }>>([]);
   const [loader, setLoader] = useState<boolean>(false);
 

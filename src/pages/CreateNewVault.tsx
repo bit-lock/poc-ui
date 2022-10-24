@@ -8,6 +8,7 @@ import styled from "styled-components";
 import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
+import { Web3Lib } from "../lib/Web3Lib";
 
 declare var window: any;
 
@@ -37,7 +38,7 @@ export const CreateNewVault = () => {
     if (typeof window.ethereum !== "undefined") {
       ethereum
         .request({ method: "eth_requestAccounts" })
-        .then((accounts: Array<string>) => {
+        .then(async (accounts: Array<string>) => {
           signatories[0].value = accounts[0];
           setAccount(accounts[0]);
           const clonedScripts = [...signatories];
@@ -104,6 +105,11 @@ export const CreateNewVault = () => {
     setSignatories(previousState);
   };
 
+  const initializeVaultClick = () => {
+    const web3Instance = new Web3Lib(account);
+    web3Instance.initialVault(account);
+  };
+
   return (
     <Wrapper>
       <StyledBackButton onClick={() => navigate(ROUTE_PATH.VAULT)}> Back </StyledBackButton>
@@ -161,8 +167,8 @@ export const CreateNewVault = () => {
         />
       </InputContainer>
 
-      <AddSignatoryButton appearance="primary" onClick={() => console.log(vaultName, signatories)}>
-        Initiaize Vault
+      <AddSignatoryButton appearance="primary" onClick={initializeVaultClick}>
+        Initialize Vault
       </AddSignatoryButton>
     </Wrapper>
   );
