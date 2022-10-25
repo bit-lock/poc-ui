@@ -14,7 +14,7 @@ type Props = {
 
 export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [vaultName, setVaultName] = useState<string>("");
-  const [signatories, setSignatories] = useState<Signatory[]>([]);
+  const [signatories, setSignatories] = useState<Signatory[]>([{ index: 0, address: account, percent: 100 }]);
   const [threshold, setThreshold] = useState<number>(25);
   const navigate = useNavigate();
 

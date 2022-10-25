@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Col, Grid, Panel, Placeholder, Row } from "rsuite";
+import { Col, Grid, Loader, Panel, Placeholder, Row } from "rsuite";
 import styled from "styled-components";
 import { Web3Lib } from "../lib/Web3Lib";
 
 export const Vaults = () => {
   const [vaultList, setVaultList] = useState<Array<any>>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
   useEffect(() => {
     const init = async () => {
       const web3Instance = new Web3Lib();
@@ -37,12 +39,30 @@ export const Vaults = () => {
         }
       }
 
-      //console.log(accountVaultList);
       setVaultList(accountVaultList);
+      setLoading(false);
     };
 
     init();
   }, []);
+
+  const calculateWaitingConfirmCount = (signatories: any[]) => {
+    const currentData = signatories[2];
+    const waitingConfirmationCount = currentData.length;
+    let confimationCount = 0;
+
+    currentData.forEach((signatory: any) => {
+      if (signatory !== "0x0000000000000000000000000000000000000000000000000000000000000000") confimationCount++;
+    });
+
+    return "Confirmation Count : " + waitingConfirmationCount + " / " + confimationCount;
+  };
+
+  if (loading) {
+    return <Loader backdrop content="Fetching vaults..." vertical />;
+  }
+
+  console.log(vaultList);
 
   return (
     <Container fluid>
@@ -50,14 +70,20 @@ export const Vaults = () => {
         <Text fontSize="17px" alignSelf="center">
           My Vault List
         </Text>
-        {vaultList.map((vault) => {
-          if (vault.isMyOwner) {
+        {vaultList.map((list) => {
+          if (list.isMyOwner) {
             return (
               <VaultItem>
-                <StyledPanel bordered header={vault.vault.name === "" ? "unnamed vault" : vault.vault.name}>
-                  <Text>Initiator: {vault.vault.initiator}</Text>
+                <StyledPanel bordered header={list.vault.name}>
+                  <Text>Id: {list.id}</Text>
                   <br />
-                  <Text>Threshold: {vault.vault.threshold}</Text>
+                  <Text>Initiator: {list.vault.initiator}</Text>
+                  <br />
+                  <Text>Threshold: {list.vault.threshold}</Text>
+                  <br />
+                  <Text>Status: {list.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
+                  <br />
+                  <Text>{calculateWaitingConfirmCount(list.signatories)}</Text>
                 </StyledPanel>
               </VaultItem>
             );
@@ -71,14 +97,20 @@ export const Vaults = () => {
           The vaults I'm in.
         </Text>
 
-        {vaultList.map((vault) => {
-          if (!vault.isMyOwner) {
+        {vaultList.map((list) => {
+          if (!list.isMyOwner) {
             return (
               <VaultItem>
-                <StyledPanel bordered header={vault.vault.name === "" ? "unnamed vault" : vault.vault.name}>
-                  <Text>Initiator: {vault.vault.initiator}</Text>
+                <StyledPanel bordered header={list.vault.name}>
+                  <Text>Id: {list.id}</Text>
                   <br />
-                  <Text>Threshold: {vault.vault.threshold}</Text>
+                  <Text>Initiator: {list.vault.initiator}</Text>
+                  <br />
+                  <Text>Threshold: {list.vault.threshold}</Text>
+                  <br />
+                  <Text>Status: {list.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
+                  <br />
+                  <Text>{calculateWaitingConfirmCount(list.signatories)}</Text>
                 </StyledPanel>
               </VaultItem>
             );
