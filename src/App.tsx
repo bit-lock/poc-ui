@@ -2,8 +2,12 @@ import React from "react";
 import { AppRouter } from "./routes/AppRouter";
 import "./App.css";
 
-function App() {
-  return <AppRouter />;
+declare global {
+  interface Window {
+    ethereum: any;
+  }
 }
 
-export default App;
+export const App = () => {
+  return <AppRouter />;
+};

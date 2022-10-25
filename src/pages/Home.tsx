@@ -4,17 +4,18 @@ import { Button } from "rsuite";
 import styled from "styled-components";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 
-function Home() {
+export const Home = () => {
   const navigate = useNavigate();
+
   return (
     <Wrapper>
-      <span> Welcome To BTC Vault</span>
-      <StyledButton onClick={() => navigate(ROUTE_PATH.VAULT)}>Vault Detail</StyledButton>
+      <StyledButton onClick={() => navigate(ROUTE_PATH.CREATE_NEW_VAULT)}>Create New Vault</StyledButton>
+      <StyledButton onClick={() => navigate(ROUTE_PATH.VAULTS)}>View Vaults</StyledButton>
+      <StyledButton disabled>View Requests</StyledButton>
+      <StyledButton onClick={() => navigate(ROUTE_PATH.FETCH_UTXO)}>Fetch UTXO</StyledButton>
     </Wrapper>
   );
-}
-
-export default Home;
+};
 
 const Wrapper = styled.section`
   padding: 4em;
@@ -31,9 +32,6 @@ const Wrapper = styled.section`
   right: 0;
   margin: auto;
   flex-direction: column;
-  text-align: center;
-  color: #f4bf75;
-  font-size: 1.2rem;
 `;
 
 const StyledButton = styled(Button)`

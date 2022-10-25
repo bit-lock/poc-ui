@@ -1,94 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
-import { crypto } from "@script-wiz/lib-core";
-import WizData from "@script-wiz/wiz-data";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
-import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
+import { Web3Lib } from "../lib/Web3Lib";
+import { Signatory } from "../lib/models/Signatory";
 
-declare var window: any;
-
-type Signatory = {
-  index: number;
-  value: string;
-  percent: number;
+type Props = {
+  account: string;
 };
 
-export const CreateNewVault = () => {
-  const { ethereum } = window;
-
-  const navigate = useNavigate();
-
+export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [vaultName, setVaultName] = useState<string>("");
-  const [signatories, setSignatories] = useState<Signatory[]>([{ index: 1, value: "", percent: 100 }]);
-  const [newSignatoryValue, setNewSignatoryValue] = useState<number>(25);
-  const [account, setAccount] = useState<string>("");
-
-  const [signature, setSignature] = useState<string>("");
-  const [privateKey, setPrivateKey] = useState<string>();
-  const [publicKey, setPublicKey] = useState<string>();
-
-  const message = "Sign this message to access MultiBit interface.";
-
-  useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      ethereum
-        .request({ method: "eth_requestAccounts" })
-        .then((accounts: Array<string>) => {
-          signatories[0].value = accounts[0];
-          setAccount(accounts[0]);
-          const clonedScripts = [...signatories];
-          setSignatories(clonedScripts);
-        })
-        .catch((error: any) => {
-          if (error.code === 4001) {
-            toastr.error("Please connect to MetaMask.");
-          } else {
-            toastr.error(error.response.data);
-          }
-        });
-    } else {
-      window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ethereum]);
-
-  useEffect(() => {
-    if (account !== "") {
-      ethereum
-        .request({ method: "personal_sign", params: [message, account] })
-        .then((sgntr: string) => {
-          createKeys(sgntr);
-        })
-        .catch((err: any) => toastr.error(err.message));
-    }
-  }, [account, ethereum]);
-
-  const createKeys = (signature: string) => {
-    try {
-      const withoutPrefixSignature = signature.slice(2);
-      const prvKey = crypto.sha256(WizData.fromHex(withoutPrefixSignature)).toString();
-
-      const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
-
-      setSignature(withoutPrefixSignature);
-      setPrivateKey(prvKey);
-      setPublicKey(keys.publicKey.hex);
-    } catch (err: any) {
-      toastr.error(err);
-    }
-  };
+  const [signatories, setSignatories] = useState<Signatory[]>([{ index: 0, address: account, percent: 100 }]);
+  const [threshold, setThreshold] = useState<number>(25);
+  const navigate = useNavigate();
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
     const previousState = newSignatory.map((s: Signatory) => {
-      return { ...s, percent: (s.percent * (100 - newSignatoryValue)) / 100 };
+      return { ...s, percent: (s.percent * (100 - threshold)) / 100 };
     });
 
-    previousState.push({ index: signatories.length + 1, value: "", percent: newSignatoryValue });
+    previousState.push({ index: signatories.length + 1, address: "", percent: threshold });
 
     setSignatories(previousState);
   };
@@ -104,9 +40,20 @@ export const CreateNewVault = () => {
     setSignatories(previousState);
   };
 
+  const initializeVaultClick = async () => {
+    const web3Instance = new Web3Lib();
+    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
+    const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent * 100);
+    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
+
+    navigate(ROUTE_PATH.VAULTS);
+  };
+
+  const initButonDisabled: boolean = vaultName === "" || threshold === 0;
+
   return (
     <Wrapper>
-      <StyledBackButton onClick={() => navigate(ROUTE_PATH.VAULT)}> Back </StyledBackButton>
+      <StyledBackButton onClick={() => navigate(ROUTE_PATH.HOME)}> Back </StyledBackButton>
 
       <InputContainer>
         <StyledText>Vault Name</StyledText>
@@ -114,22 +61,22 @@ export const CreateNewVault = () => {
       </InputContainer>
 
       <div>
-        {signatories.map((signatory: any, index) => {
+        {signatories.map((signatory: Signatory, index) => {
           return (
             <InputContainer key={index}>
               <StyledText>Signatory {index + 1}</StyledText>
               <StyledInputGroup>
                 <Input
                   placeholder={"0x ETH Address"}
-                  value={signatory.value}
+                  value={signatory.address}
                   onChange={(value: string) => {
                     const clonedSignatories = [...signatories];
-                    clonedSignatories[index].value = value.replace(/\s/g, "");
+                    clonedSignatories[index].address = value.replace(/\s/g, "");
                     setSignatories(clonedSignatories);
                   }}
                 />
                 <Whisper placement="top" trigger="click" speaker={<Tooltip>ETH Address</Tooltip>}>
-                  <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.value || "")}>
+                  <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.address || "")}>
                     <CopyIcon width="1rem" height="1rem" />
                   </InputGroup.Button>
                 </Whisper>
@@ -156,13 +103,13 @@ export const CreateNewVault = () => {
           step={0.01}
           defaultValue={25.0}
           onChange={(value) => {
-            setNewSignatoryValue(value);
+            setThreshold(value);
           }}
         />
       </InputContainer>
 
-      <AddSignatoryButton appearance="primary" onClick={() => console.log(vaultName, signatories)}>
-        Initiaize Vault
+      <AddSignatoryButton appearance="primary" onClick={initializeVaultClick} disabled={initButonDisabled}>
+        Initialize Vault
       </AddSignatoryButton>
     </Wrapper>
   );
