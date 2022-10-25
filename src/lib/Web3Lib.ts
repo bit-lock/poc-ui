@@ -1,5 +1,6 @@
 import Web3 from "web3";
 import BtcVault from "./contracts/BtcVault.json";
+import toastr from "toastr";
 
 export class Web3Lib {
   private web3: Web3;
@@ -25,7 +26,7 @@ export class Web3Lib {
     return vaultFunction
       .send({ from: address, gasLimit: gasAmount, gasPrice })
       .on("transactionHash", function (hash: any) {
-        console.log("hash", hash);
+        toastr.success(hash, "Vault creation success.");
       })
       .on("error", console.error);
   };
