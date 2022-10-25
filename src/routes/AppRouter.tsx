@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { CreateNewVault } from "../pages/CreateNewVault";
-import { FetchUtxo } from "../pages/FetchUtxo";
 import { Home } from "../pages/Home";
 import { Vaults } from "../pages/Vaults";
 import { ROUTE_PATH } from "./ROUTE_PATH";
@@ -11,7 +10,7 @@ import toastr from "toastr";
 import { Loader } from "rsuite";
 import { ViewRequests } from "../pages/ViewRequests";
 
-const message = "Sign this message to log into Bitlock interface.WARNING: Only sign this message when you're at bitlock.app.";
+const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
 export const AppRouter = (): JSX.Element => {
   const [signature, setSignature] = useState<string>("");
