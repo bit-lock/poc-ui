@@ -1,82 +1,22 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
-import { crypto } from "@script-wiz/lib-core";
-import WizData from "@script-wiz/wiz-data";
 import { useNavigate } from "react-router-dom";
 import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
-import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
+import { Signatory } from "../lib/models/Signatory";
 
-const message = "Sign this message to access MultiBit interface.";
-
-type Signatory = {
-  index: number;
-  address: string;
-  percent: number;
+type Props = {
+  account: string;
 };
 
-export const CreateNewVault = () => {
-  const navigate = useNavigate();
-
+export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<Signatory[]>([]);
   const [threshold, setThreshold] = useState<number>(25);
-  const [account, setAccount] = useState<string>("");
-
-  const [signature, setSignature] = useState<string>("");
-  const [privateKey, setPrivateKey] = useState<string>();
-  const [publicKey, setPublicKey] = useState<string>();
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    window.ethereum
-      .request({ method: "eth_requestAccounts" })
-      .then((accounts: Array<string>) => {
-        // initial address and signatory set
-        const selectedAccount = accounts[0];
-        setAccount(accounts[0]);
-        setSignatories([{ index: 0, address: selectedAccount, percent: 100 }]);
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
-
-  useEffect(() => {
-    setLoading(true);
-    if (account !== "") {
-      window.ethereum
-        .request({ method: "personal_sign", params: [message, account] })
-        .then((sgntr: string) => {
-          createKeys(sgntr);
-        })
-        .catch((err: any) => toastr.error(err.message))
-        .finally(() => {
-          setLoading(false);
-        });
-    } else {
-      setLoading(false);
-    }
-  }, [account]);
-
-  const createKeys = (signature: string) => {
-    try {
-      const withoutPrefixSignature = signature.slice(2);
-      const prvKey = crypto.sha256(WizData.fromHex(withoutPrefixSignature)).toString();
-
-      const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
-
-      setSignature(withoutPrefixSignature);
-      setPrivateKey(prvKey);
-      setPublicKey(keys.publicKey.hex);
-    } catch (err: any) {
-      toastr.error(err);
-    }
-  };
+  const navigate = useNavigate();
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
@@ -106,8 +46,6 @@ export const CreateNewVault = () => {
     const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent * 100);
     web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
   };
-
-  const checkSignatories = () => {};
 
   const initButonDisabled: boolean = vaultName === "" || threshold === 0;
 

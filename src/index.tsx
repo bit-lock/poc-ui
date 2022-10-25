@@ -7,11 +7,9 @@ import { CustomProvider } from "rsuite";
 
 const root = ReactDOM.createRoot(document.getElementById("root") as HTMLElement);
 root.render(
-  <React.StrictMode>
-    <CustomProvider theme="dark">
-      <App />
-    </CustomProvider>
-  </React.StrictMode>
+  <CustomProvider theme="dark">
+    <App />
+  </CustomProvider>
 );
 
 // If you want to start measuring performance in your app, pass a function

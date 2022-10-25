@@ -1,20 +1,38 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { CreateNewVault } from "../pages/CreateNewVault";
 import { FetchUtxo } from "../pages/FetchUtxo";
 import { Home } from "../pages/Home";
 import { Vaults } from "../pages/Vaults";
 import { ROUTE_PATH } from "./ROUTE_PATH";
+import { crypto } from "@script-wiz/lib-core";
+import WizData from "@script-wiz/wiz-data";
+import toastr from "toastr";
+import { Loader } from "rsuite";
+
+const message = "Sign this message to log into Bitlock interface.WARNING: Only sign this message when you're at bitlock.app.";
 
 export const AppRouter = (): JSX.Element => {
-  const { ethereum } = window;
+  const [signature, setSignature] = useState<string>("");
+  const [privateKey, setPrivateKey] = useState<string>();
+  const [publicKey, setPublicKey] = useState<string>();
+  const [account, setAccount] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     if (typeof window.ethereum !== "undefined") {
-      ethereum
+      window.ethereum
         .enable()
         .then(() => {
-          console.log("connection success");
+          window.ethereum.request({ method: "eth_requestAccounts" }).then((accounts: Array<string>) => {
+            window.ethereum
+              .request({ method: "personal_sign", params: [message, accounts[0]] })
+              .then((sgntr: string) => {
+                createKeys(sgntr, accounts[0]);
+                setLoading(false);
+              })
+              .catch((err: any) => toastr.error(err.message));
+          });
         })
         .catch((error: any) => {
           if (error.code === 4001) {
@@ -26,8 +44,23 @@ export const AppRouter = (): JSX.Element => {
     } else {
       window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en");
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ethereum]);
+  }, []);
+
+  const createKeys = (signature: string, account: string) => {
+    try {
+      const withoutPrefixSignature = signature.slice(2);
+      const prvKey = crypto.sha256(WizData.fromHex(withoutPrefixSignature)).toString();
+
+      const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
+
+      setSignature(withoutPrefixSignature);
+      setPrivateKey(prvKey);
+      setPublicKey(keys.publicKey.hex);
+      setAccount(account);
+    } catch (err: any) {
+      toastr.error(err);
+    }
+  };
 
   const router = createBrowserRouter([
     {
@@ -40,7 +73,7 @@ export const AppRouter = (): JSX.Element => {
     },
     {
       path: ROUTE_PATH.CREATE_NEW_VAULT,
-      element: <CreateNewVault />,
+      element: <CreateNewVault account={account} />,
     },
     {
       path: ROUTE_PATH.FETCH_UTXO,
@@ -48,9 +81,5 @@ export const AppRouter = (): JSX.Element => {
     },
   ]);
 
-  return (
-    <React.StrictMode>
-      <RouterProvider router={router} />
-    </React.StrictMode>
-  );
+  return <>{loading ? <Loader backdrop content="Waiting Confirm..." vertical /> : <RouterProvider router={router} />}</>;
 };
