@@ -114,7 +114,7 @@ export const CreateNewVault = () => {
 
   return (
     <Wrapper>
-      <StyledBackButton onClick={() => navigate(ROUTE_PATH.VAULT)}> Back </StyledBackButton>
+      <StyledBackButton onClick={() => navigate(ROUTE_PATH.HOME)}> Back </StyledBackButton>
 
       <InputContainer>
         <StyledText>Vault Name</StyledText>

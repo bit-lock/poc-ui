@@ -1,6 +1,6 @@
 export enum ROUTE_PATH {
   HOME = "/",
-  VAULT = "/vault",
+  VAULTS = "/vaults",
   CREATE_NEW_VAULT = "/create-new-vault",
   FETCH_UTXO = "/fetch-utxo",
 }
