@@ -57,4 +57,19 @@ export class Web3Lib {
       })
       .on("error", console.error);
   };
+
+  finalizeVault = async (id: number, address: string): Promise<any> => {
+    const gasPrice = await this.web3.eth.getGasPrice();
+
+    const vaultFunction = this.contract.methods.finalizeVault(id);
+
+    const gasAmount = await vaultFunction.estimateGas({ from: address });
+
+    return vaultFunction
+      .send({ from: address, gasLimit: gasAmount, gasPrice })
+      .on("transactionHash", function (hash: any) {
+        toastr.success(hash, "Finalized success.");
+      })
+      .on("error", console.error);
+  };
 }
