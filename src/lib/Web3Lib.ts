@@ -27,6 +27,7 @@ export class Web3Lib {
       .send({ from: address, gasLimit: gasAmount, gasPrice })
       .on("transactionHash", function (hash: any) {
         toastr.success(hash, "Vault creation success.");
+        Promise.resolve();
       })
       .on("error", console.error);
   };
