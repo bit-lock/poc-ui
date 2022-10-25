@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { useEffect, useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
 import { crypto } from "@script-wiz/lib-core";
@@ -14,7 +15,7 @@ const message = "Sign this message to access MultiBit interface.";
 
 type Signatory = {
   index: number;
-  value: string;
+  address: string;
   percent: number;
 };
 
@@ -22,31 +23,43 @@ export const CreateNewVault = () => {
   const navigate = useNavigate();
 
   const [vaultName, setVaultName] = useState<string>("");
-  const [signatories, setSignatories] = useState<Signatory[]>([{ index: 1, value: "", percent: 100 }]);
+  const [signatories, setSignatories] = useState<Signatory[]>([]);
   const [newSignatoryValue, setNewSignatoryValue] = useState<number>(25);
   const [account, setAccount] = useState<string>("");
 
   const [signature, setSignature] = useState<string>("");
   const [privateKey, setPrivateKey] = useState<string>();
   const [publicKey, setPublicKey] = useState<string>();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    window.ethereum.request({ method: "eth_requestAccounts" }).then((accounts: Array<string>) => {
-      const clonedScripts = [...signatories];
-      clonedScripts[0].value = accounts[0];
-      setAccount(accounts[0]);
-      setSignatories(clonedScripts);
-    });
-  }, [signatories]);
+    window.ethereum
+      .request({ method: "eth_requestAccounts" })
+      .then((accounts: Array<string>) => {
+        // initial address and signatory set
+        const selectedAccount = accounts[0];
+        setAccount(accounts[0]);
+        setSignatories([{ index: 0, address: selectedAccount, percent: 100 }]);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
+    setLoading(true);
     if (account !== "") {
       window.ethereum
         .request({ method: "personal_sign", params: [message, account] })
         .then((sgntr: string) => {
           createKeys(sgntr);
         })
-        .catch((err: any) => toastr.error(err.message));
+        .catch((err: any) => toastr.error(err.message))
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setLoading(false);
     }
   }, [account]);
 
@@ -71,7 +84,7 @@ export const CreateNewVault = () => {
       return { ...s, percent: (s.percent * (100 - newSignatoryValue)) / 100 };
     });
 
-    previousState.push({ index: signatories.length + 1, value: "", percent: newSignatoryValue });
+    previousState.push({ index: signatories.length + 1, address: "", percent: newSignatoryValue });
 
     setSignatories(previousState);
   };
@@ -89,7 +102,7 @@ export const CreateNewVault = () => {
 
   const initializeVaultClick = () => {
     const web3Instance = new Web3Lib();
-    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.value);
+    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
     const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent);
     web3Instance.initialVault(account, vaultName, newSignatoryValue, signatoriesAddress, signatoriesShares);
   };
@@ -104,22 +117,22 @@ export const CreateNewVault = () => {
       </InputContainer>
 
       <div>
-        {signatories.map((signatory: any, index) => {
+        {signatories.map((signatory: Signatory, index) => {
           return (
             <InputContainer key={index}>
               <StyledText>Signatory {index + 1}</StyledText>
               <StyledInputGroup>
                 <Input
                   placeholder={"0x ETH Address"}
-                  value={signatory.value}
+                  value={signatory.address}
                   onChange={(value: string) => {
                     const clonedSignatories = [...signatories];
-                    clonedSignatories[index].value = value.replace(/\s/g, "");
+                    clonedSignatories[index].address = value.replace(/\s/g, "");
                     setSignatories(clonedSignatories);
                   }}
                 />
                 <Whisper placement="top" trigger="click" speaker={<Tooltip>ETH Address</Tooltip>}>
-                  <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.value || "")}>
+                  <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.address || "")}>
                     <CopyIcon width="1rem" height="1rem" />
                   </InputGroup.Button>
                 </Whisper>
