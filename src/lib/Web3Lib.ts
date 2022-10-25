@@ -19,7 +19,7 @@ export class Web3Lib {
   initialVault = async (address: string, name: string, threshold: number, signatories: string[], shares: number[]) => {
     const gasPrice = await this.web3.eth.getGasPrice();
 
-    const vaultFunction = this.contract.methods.initializeVault(name, threshold, signatories, shares);
+    const vaultFunction = this.contract.methods.initializeVault(name, Math.floor(threshold), signatories, shares);
 
     const gasAmount = await vaultFunction.estimateGas({ from: address });
 
