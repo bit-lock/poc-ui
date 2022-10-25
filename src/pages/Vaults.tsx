@@ -28,9 +28,9 @@ export const Vaults = () => {
         const currentSignatories = signatories[z][0].map((data: string) => data.toLowerCase());
 
         if (currentVault.initiator.toLowerCase() === myCurrentAdress) {
-          accountVaultList.push({ vault: vaults[z], signatories: signatories[z], isMyOwner: true });
+          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: true });
         } else if (currentSignatories.includes(myCurrentAdress)) {
-          accountVaultList.push({ vault: vaults[z], signatories: signatories[z], isMyOwner: false });
+          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: false });
         }
       }
 

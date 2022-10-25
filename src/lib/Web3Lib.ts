@@ -42,4 +42,19 @@ export class Web3Lib {
   getSignatories = async (id: number): Promise<any> => {
     return this.contract.methods.getSignatories(id).call();
   };
+
+  approveSignatory = async (id: number, pubkey: string, address: string): Promise<any> => {
+    const gasPrice = await this.web3.eth.getGasPrice();
+
+    const vaultFunction = this.contract.methods.approveSignatory(id, pubkey);
+
+    const gasAmount = await vaultFunction.estimateGas({ from: address });
+
+    return vaultFunction
+      .send({ from: address, gasLimit: gasAmount, gasPrice })
+      .on("transactionHash", function (hash: any) {
+        toastr.success(hash, "Appromevent success.");
+      })
+      .on("error", console.error);
+  };
 }
