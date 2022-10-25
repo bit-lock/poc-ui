@@ -62,8 +62,13 @@ export const Vaults = () => {
     return <Loader backdrop content="Fetching vaults..." vertical />;
   }
 
-  console.log(vaultList);
-
+  if (vaultList.length === 0) {
+    return (
+      <Container>
+        <Text fontSize="16px">You don't have any vaults.</Text>
+      </Container>
+    );
+  }
   return (
     <Container fluid>
       <VaultList xs={12} xsPush={12}>
