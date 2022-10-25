@@ -107,7 +107,9 @@ export const CreateNewVault = () => {
 
   const initializeVaultClick = () => {
     const web3Instance = new Web3Lib(account);
-    web3Instance.initialVault(account);
+    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.value);
+    const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent);
+    web3Instance.initialVault(account, vaultName, newSignatoryValue, signatoriesAddress, signatoriesShares);
   };
 
   return (
