@@ -11,7 +11,7 @@ export const Home = () => {
     <Wrapper>
       <StyledButton onClick={() => navigate(ROUTE_PATH.CREATE_NEW_VAULT)}>Create New Vault</StyledButton>
       <StyledButton onClick={() => navigate(ROUTE_PATH.VAULTS)}>View Vaults</StyledButton>
-      <StyledButton disabled>View Requests</StyledButton>
+      <StyledButton onClick={() => navigate(ROUTE_PATH.VIEW_REQUESTS)}>View Requests</StyledButton>
       <StyledButton onClick={() => navigate(ROUTE_PATH.FETCH_UTXO)}>Fetch UTXO</StyledButton>
     </Wrapper>
   );

@@ -9,6 +9,7 @@ import { crypto } from "@script-wiz/lib-core";
 import WizData from "@script-wiz/wiz-data";
 import toastr from "toastr";
 import { Loader } from "rsuite";
+import { ViewRequests } from "../pages/ViewRequests";
 
 const message = "Sign this message to log into Bitlock interface.WARNING: Only sign this message when you're at bitlock.app.";
 
@@ -76,9 +77,13 @@ export const AppRouter = (): JSX.Element => {
       element: <CreateNewVault account={account} />,
     },
     {
-      path: ROUTE_PATH.FETCH_UTXO,
-      element: <FetchUtxo />,
+      path: ROUTE_PATH.VIEW_REQUESTS,
+      element: <ViewRequests />,
     },
+    // {
+    //   path: ROUTE_PATH.FETCH_UTXO,
+    //   element: <FetchUtxo />,
+    // },
   ]);
 
   return <>{loading ? <Loader backdrop content="Waiting Confirm..." vertical /> : <RouterProvider router={router} />}</>;
