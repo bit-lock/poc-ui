@@ -24,7 +24,7 @@ export const CreateNewVault = () => {
 
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<Signatory[]>([]);
-  const [newSignatoryValue, setNewSignatoryValue] = useState<number>(25);
+  const [threshold, setThreshold] = useState<number>(25);
   const [account, setAccount] = useState<string>("");
 
   const [signature, setSignature] = useState<string>("");
@@ -81,10 +81,10 @@ export const CreateNewVault = () => {
   const addButtonClick = () => {
     const newSignatory = [...signatories];
     const previousState = newSignatory.map((s: Signatory) => {
-      return { ...s, percent: (s.percent * (100 - newSignatoryValue)) / 100 };
+      return { ...s, percent: (s.percent * (100 - threshold)) / 100 };
     });
 
-    previousState.push({ index: signatories.length + 1, address: "", percent: newSignatoryValue });
+    previousState.push({ index: signatories.length + 1, address: "", percent: threshold });
 
     setSignatories(previousState);
   };
@@ -104,8 +104,12 @@ export const CreateNewVault = () => {
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
     const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent * 100);
-    web3Instance.initialVault(account, vaultName, newSignatoryValue, signatoriesAddress, signatoriesShares);
+    web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
   };
+
+  const checkSignatories = () => {};
+
+  const initButonDisabled: boolean = vaultName === "" || threshold === 0;
 
   return (
     <Wrapper>
@@ -159,12 +163,12 @@ export const CreateNewVault = () => {
           step={0.01}
           defaultValue={25.0}
           onChange={(value) => {
-            setNewSignatoryValue(value);
+            setThreshold(value);
           }}
         />
       </InputContainer>
 
-      <AddSignatoryButton appearance="primary" onClick={initializeVaultClick}>
+      <AddSignatoryButton appearance="primary" onClick={initializeVaultClick} disabled={initButonDisabled}>
         Initialize Vault
       </AddSignatoryButton>
     </Wrapper>
