@@ -9,6 +9,7 @@ import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
+import Web3 from "web3";
 
 declare var window: any;
 
@@ -106,7 +107,7 @@ export const CreateNewVault = () => {
   };
 
   const initializeVaultClick = () => {
-    const web3Instance = new Web3Lib(account);
+    const web3Instance = new Web3Lib(window.ethereum);
     const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.value);
     const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent);
     web3Instance.initialVault(account, vaultName, newSignatoryValue, signatoriesAddress, signatoriesShares);
