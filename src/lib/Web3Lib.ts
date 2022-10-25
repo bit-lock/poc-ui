@@ -5,8 +5,8 @@ export class Web3Lib {
   private web3: Web3;
   private contract: any;
 
-  constructor(ethereum: any) {
-    this.web3 = new Web3(ethereum);
+  constructor() {
+    this.web3 = new Web3(window.ethereum);
 
     this.initContract();
   }

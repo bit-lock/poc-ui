@@ -10,7 +10,7 @@ import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
 
-declare var window: any;
+const message = "Sign this message to access MultiBit interface.";
 
 type Signatory = {
   index: number;
@@ -19,8 +19,6 @@ type Signatory = {
 };
 
 export const CreateNewVault = () => {
-  const { ethereum } = window;
-
   const navigate = useNavigate();
 
   const [vaultName, setVaultName] = useState<string>("");
@@ -32,41 +30,25 @@ export const CreateNewVault = () => {
   const [privateKey, setPrivateKey] = useState<string>();
   const [publicKey, setPublicKey] = useState<string>();
 
-  const message = "Sign this message to access MultiBit interface.";
-
   useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      ethereum
-        .request({ method: "eth_requestAccounts" })
-        .then(async (accounts: Array<string>) => {
-          signatories[0].value = accounts[0];
-          setAccount(accounts[0]);
-          const clonedScripts = [...signatories];
-          setSignatories(clonedScripts);
-        })
-        .catch((error: any) => {
-          if (error.code === 4001) {
-            toastr.error("Please connect to MetaMask.");
-          } else {
-            toastr.error(error.response.data);
-          }
-        });
-    } else {
-      window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ethereum]);
+    window.ethereum.request({ method: "eth_requestAccounts" }).then((accounts: Array<string>) => {
+      const clonedScripts = [...signatories];
+      clonedScripts[0].value = accounts[0];
+      setAccount(accounts[0]);
+      setSignatories(clonedScripts);
+    });
+  }, [signatories]);
 
   useEffect(() => {
     if (account !== "") {
-      ethereum
+      window.ethereum
         .request({ method: "personal_sign", params: [message, account] })
         .then((sgntr: string) => {
           createKeys(sgntr);
         })
         .catch((err: any) => toastr.error(err.message));
     }
-  }, [account, ethereum]);
+  }, [account]);
 
   const createKeys = (signature: string) => {
     try {
@@ -106,7 +88,7 @@ export const CreateNewVault = () => {
   };
 
   const initializeVaultClick = () => {
-    const web3Instance = new Web3Lib(window.ethereum);
+    const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.value);
     const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent);
     web3Instance.initialVault(account, vaultName, newSignatoryValue, signatoriesAddress, signatoriesShares);
