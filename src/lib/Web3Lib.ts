@@ -34,7 +34,11 @@ export class Web3Lib {
     return this.contract.methods.getVaultLength().call();
   };
 
-  getSignatories = async (id: string): Promise<any> => {
+  getVaults = async (id: number): Promise<any> => {
+    return this.contract.methods.vaults(id).call();
+  };
+
+  getSignatories = async (id: number): Promise<any> => {
     return this.contract.methods.getSignatories(id).call();
   };
 }
