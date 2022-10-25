@@ -9,7 +9,6 @@ import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
-import Web3 from "web3";
 
 declare var window: any;
 
