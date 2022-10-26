@@ -15,7 +15,7 @@ const message = "Sign this message to log into Bitlock interface.\nWARNING: Only
 export const AppRouter = (): JSX.Element => {
   const [signature, setSignature] = useState<string>("");
   const [privateKey, setPrivateKey] = useState<string>();
-  const [publicKey, setPublicKey] = useState<string>();
+  const [publicKey, setPublicKey] = useState<string>("");
   const [account, setAccount] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -69,7 +69,7 @@ export const AppRouter = (): JSX.Element => {
     },
     {
       path: ROUTE_PATH.VAULTS,
-      element: <Vaults />,
+      element: <Vaults account={account} />,
     },
     {
       path: ROUTE_PATH.CREATE_NEW_VAULT,
@@ -77,7 +77,7 @@ export const AppRouter = (): JSX.Element => {
     },
     {
       path: ROUTE_PATH.VIEW_REQUESTS,
-      element: <ViewRequests />,
+      element: <ViewRequests account={account} publicKey={publicKey} />,
     },
     // {
     //   path: ROUTE_PATH.FETCH_UTXO,
