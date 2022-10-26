@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Col, Grid, Loader, Panel, Placeholder, Row } from "rsuite";
+import { Grid, Loader, Panel, Row } from "rsuite";
 import styled from "styled-components";
 import { Web3Lib } from "../lib/Web3Lib";
 
-export const Vaults = () => {
+type Props = {
+  account: string;
+};
+
+export const Vaults: React.FC<Props> = ({ account }) => {
   const [vaultList, setVaultList] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -23,8 +27,7 @@ export const Vaults = () => {
       const vaults = await Promise.all(fetchVaultPromises);
       const signatories = await Promise.all(fetchSignatoriesPromises);
 
-      const myAddresses: string[] = await window.ethereum.request({ method: "eth_requestAccounts" });
-      const myCurrentAdress = myAddresses[0].toLowerCase();
+      const myCurrentAdress = account.toLowerCase();
 
       const accountVaultList = [];
 
@@ -44,7 +47,7 @@ export const Vaults = () => {
     };
 
     init();
-  }, []);
+  }, [account]);
 
   const calculateWaitingConfirmCount = (signatories: any[]) => {
     const currentData = signatories[2];
@@ -151,12 +154,12 @@ const VaultItem = styled.div`
   margin-bottom: 12px;
 `;
 
-interface Props {
+interface TextProps {
   fontSize?: string;
   alignSelf?: string;
 }
 
-const Text = styled.span<Props>`
+const Text = styled.span<TextProps>`
   font-size: ${(props) => (props.fontSize ? props.fontSize : "13px")};
   margin-bottom: 4px;
   align-self: ${(props) => props.alignSelf};
