@@ -103,40 +103,49 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
         <StyledBox justify="center">
           <StyledBoxItem colspan={12}>
             <Panel>
-              <Text>Vault Approve Requests</Text>
-              <RequestList>
-                {approveRequestList.map((data) => {
-                  return (
-                    <RequestItem key={data.id}>
-                      <Text>{data.vault.name || "Reyhan"}</Text>
-                      <ButtonGroup>
-                        <StyledButton appearance="link" active textColor="blue" onClick={() => approveSignatory(data.id)}>
-                          Accept
-                        </StyledButton>
-                        <StyledButton appearance="link" active textColor="red">
-                          Decline
-                        </StyledButton>
-                      </ButtonGroup>
-                    </RequestItem>
-                  );
-                })}
-              </RequestList>
+              {approveRequestList.length !== 0 && (
+                <>
+                  <Text>Vault Approve Requests</Text>
+                  <RequestList>
+                    {approveRequestList.map((data) => {
+                      return (
+                        <RequestItem key={data.id}>
+                          <Text>{data.vault.name || "Reyhan"}</Text>
+                          <ButtonGroup>
+                            <StyledButton appearance="link" active textColor="blue" onClick={() => approveSignatory(data.id)}>
+                              Accept
+                            </StyledButton>
+                            <StyledButton appearance="link" active textColor="red">
+                              Decline
+                            </StyledButton>
+                          </ButtonGroup>
+                        </RequestItem>
+                      );
+                    })}
+                  </RequestList>
+                </>
+              )}
 
-              <Text>Vault Finalize Requests</Text>
-              <RequestList>
-                {finalizeRequestList.map((data) => {
-                  return (
-                    <RequestItem key={data.id}>
-                      <Text>{data.vault.name}</Text>
-                      <ButtonGroup>
-                        <StyledButton appearance="link" active textColor="blue" onClick={() => finalizeVault(data.id)}>
-                          Finalize
-                        </StyledButton>
-                      </ButtonGroup>
-                    </RequestItem>
-                  );
-                })}
-              </RequestList>
+              {finalizeRequestList.length !== 0 && (
+                <>
+                  <Text>Vault Finalize Requests</Text>
+                  <RequestList>
+                    {finalizeRequestList.map((data) => {
+                      return (
+                        <RequestItem key={data.id}>
+                          <Text>{data.vault.name}</Text>
+                          <ButtonGroup>
+                            <StyledButton appearance="link" active textColor="blue" onClick={() => finalizeVault(data.id)}>
+                              Finalize
+                            </StyledButton>
+                          </ButtonGroup>
+                        </RequestItem>
+                      );
+                    })}
+                  </RequestList>
+                </>
+              )}
+              {approveRequestList.length === 0 && finalizeRequestList.length === 0 && <Text fontSize="18px">No Data</Text>}
             </Panel>
           </StyledBoxItem>
         </StyledBox>
@@ -184,6 +193,7 @@ const StyledBoxItem = styled(FlexboxGrid.Item)`
   min-height: 65vh;
   max-height: 65vh;
   width: 60%;
+  overflow-y: scroll;
 `;
 
 const ButtonGroup = styled.div``;
@@ -192,7 +202,6 @@ const RequestList = styled.div`
   overflow-y: scroll;
   margin: 4px 0;
   max-height: max-content;
-  height: 27vh;
 `;
 
 const StyledButton = styled(Button)<StyleProps>`
