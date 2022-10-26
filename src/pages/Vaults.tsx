@@ -1,5 +1,6 @@
+/* eslint-disable array-callback-return */
 import React, { useEffect, useState } from "react";
-import { Grid, Loader, Panel, Row } from "rsuite";
+import { Grid, Loader, Modal, Panel, Row } from "rsuite";
 import styled from "styled-components";
 import { Web3Lib } from "../lib/Web3Lib";
 
@@ -10,6 +11,7 @@ type Props = {
 export const Vaults: React.FC<Props> = ({ account }) => {
   const [vaultList, setVaultList] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [modalState, setModalState] = useState<{ show: boolean; data?: any }>({ show: false });
 
   useEffect(() => {
     const init = async () => {
@@ -61,6 +63,42 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     return "Confirmation Count : " + waitingConfirmationCount + " / " + confimationCount;
   };
 
+  const handleClose = () => setModalState({ show: false });
+
+  const handleOpen = (signatories: any) => {
+    setModalState({ show: true, data: signatories });
+  };
+
+  const renderModal = () => {
+    const signatoriesAddress = modalState.data[0];
+    const percent = modalState.data[1];
+    const confirmation = modalState.data[2];
+
+    return (
+      <Modal size="sm" open={modalState.show} onClose={handleClose}>
+        <Modal.Header>
+          <Modal.Title style={{ fontWeight: 700 }}>Signatories</Modal.Title>
+          {signatoriesAddress.map((item: string, index: number) => {
+            return (
+              <div key={index}>
+                <br />
+                <Text fontWeight={700}>Signatory {index + 1}</Text>
+                <br />
+                <Text>Address: {item}</Text>
+                <br />
+                <Text>Shared: {percent[index] / 100}%</Text>
+                <br />
+                {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
+                <br />
+              </div>
+            );
+          })}
+        </Modal.Header>
+        <Modal.Body></Modal.Body>
+      </Modal>
+    );
+  };
+
   if (loading) {
     return <Loader backdrop content="Fetching vaults..." vertical />;
   }
@@ -68,68 +106,72 @@ export const Vaults: React.FC<Props> = ({ account }) => {
   if (vaultList.length === 0) {
     return (
       <Container>
-        <Text fontSize="16px">You don't have any vaults.</Text>
+        <Text fontSize="1rem">You don't have any vaults.</Text>
       </Container>
     );
   }
   return (
     <Container fluid>
-      <VaultList xs={12} xsPush={12}>
-        <Text fontSize="17px" alignSelf="center">
+      <VaultList xs={12}>
+        <Text fontSize="1.2rem" alignSelf="center">
           My Vault List
         </Text>
-        {vaultList.map((list) => {
-          if (list.isMyOwner) {
+        {vaultList.map((item) => {
+          if (item.isMyOwner) {
             return (
-              <VaultItem>
-                <StyledPanel bordered header={list.vault.name}>
-                  <Text>Id: {list.id}</Text>
+              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
+                <StyledPanel bordered header={item.vault.name}>
+                  <Text>Id: {item.id}</Text>
                   <br />
-                  <Text>Initiator: {list.vault.initiator}</Text>
+                  <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {list.vault.threshold}</Text>
+                  <Text>Threshold: {item.vault.threshold}</Text>
                   <br />
-                  <Text>Status: {list.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
+                  <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
-                  <Text>{calculateWaitingConfirmCount(list.signatories)}</Text>
+                  <Text>{calculateWaitingConfirmCount(item.signatories)}</Text>
                 </StyledPanel>
               </VaultItem>
             );
-          } else {
-            return <></>;
           }
         })}
       </VaultList>
-      <VaultList xs={12} xsPush={12}>
-        <Text fontSize="17px" alignSelf="center">
-          The vaults I'm in.
+      <VaultList xs={12}>
+        <Text fontSize="1.2rem" alignSelf="center">
+          The vaults I'm in
         </Text>
 
-        {vaultList.map((list) => {
-          if (!list.isMyOwner) {
+        {vaultList.map((item) => {
+          if (!item.isMyOwner) {
             return (
-              <VaultItem>
-                <StyledPanel bordered header={list.vault.name}>
-                  <Text>Id: {list.id}</Text>
+              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
+                <StyledPanel bordered header={item.vault.name}>
+                  <Text>Id: {item.id}</Text>
                   <br />
-                  <Text>Initiator: {list.vault.initiator}</Text>
+                  <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {list.vault.threshold}</Text>
+                  <Text>Threshold: {item.vault.threshold}</Text>
                   <br />
-                  <Text>Status: {list.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
+                  <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
-                  <Text>{calculateWaitingConfirmCount(list.signatories)}</Text>
+                  <Text>{calculateWaitingConfirmCount(item.signatories)}</Text>
                 </StyledPanel>
               </VaultItem>
             );
-          } else {
-            return <></>;
           }
         })}
+
+        {modalState.show && renderModal()}
       </VaultList>
     </Container>
   );
 };
+
+interface TextProps {
+  fontSize?: string;
+  alignSelf?: string;
+  fontWeight?: number;
+}
 
 const Container = styled(Grid)`
   display: flex;
@@ -152,15 +194,12 @@ const VaultItem = styled.div`
   flex-direction: column;
   width: 100%;
   margin-bottom: 12px;
+  cursor: pointer;
 `;
 
-interface TextProps {
-  fontSize?: string;
-  alignSelf?: string;
-}
-
 const Text = styled.span<TextProps>`
-  font-size: ${(props) => (props.fontSize ? props.fontSize : "13px")};
+  font-size: ${(props) => (props.fontSize ? props.fontSize : "0.813rem")};
+  font-weight: ${(props) => (props.fontWeight ? props.fontWeight : 500)};
   margin-bottom: 4px;
   align-self: ${(props) => props.alignSelf};
 `;
