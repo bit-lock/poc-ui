@@ -43,7 +43,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const initializeVaultClick = async () => {
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
-    const signatoriesShares = signatories.map((signatory: Signatory) => signatory.percent * 100);
+    const signatoriesShares = signatories.map((signatory: Signatory) => Math.floor(signatory.percent * 100));
     await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
 
     navigate(ROUTE_PATH.VAULTS);
