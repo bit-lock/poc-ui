@@ -1,6 +1,6 @@
 /* eslint-disable array-callback-return */
 import React, { useEffect, useState } from "react";
-import { Grid, Loader, Modal, Panel, Row } from "rsuite";
+import { Button, Grid, Loader, Modal, Panel, Row } from "rsuite";
 import styled from "styled-components";
 import { Web3Lib } from "../lib/Web3Lib";
 
@@ -120,7 +120,13 @@ export const Vaults: React.FC<Props> = ({ account }) => {
           if (item.isMyOwner) {
             return (
               <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
-                <StyledPanel bordered header={item.vault.name}>
+                <StyledPanel bordered>
+                  <Header>
+                    <Text fontSize="0.9rem" fontWeight={700}>
+                      {item.vault.name}
+                    </Text>
+                    {item.vault.status === "0x00" && <Button>Edit</Button>}
+                  </Header>
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
@@ -178,6 +184,12 @@ const Container = styled(Grid)`
   flex-direction: row;
   justify-content: space-around;
   padding: 2rem;
+`;
+
+const Header = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 `;
 
 const VaultList = styled(Row)`
