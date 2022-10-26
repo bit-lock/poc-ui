@@ -98,44 +98,45 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   }
 
   return (
-    <Container style={{ backgroundColor: "blue", height: "100vh" }}>
+    <Container>
       <Content>
         <StyledBox justify="center">
           <StyledBoxItem colspan={12}>
             <Panel>
               <Text>Vault Approve Requests</Text>
-              <br />
-              {approveRequestList.map((data) => {
-                return (
-                  <RequestItem key={data.id}>
-                    <Text>{data.vault.name || "Reyhan"}</Text>
-                    <ButtonGroup>
-                      <Button appearance="link" active color="blue" onClick={() => approveSignatory(data.id)}>
-                        Accept
-                      </Button>
-                      <Button appearance="link" active color="red">
-                        Decline
-                      </Button>
-                    </ButtonGroup>
-                  </RequestItem>
-                );
-              })}
+              <RequestList>
+                {approveRequestList.map((data) => {
+                  return (
+                    <RequestItem key={data.id}>
+                      <Text>{data.vault.name || "Reyhan"}</Text>
+                      <ButtonGroup>
+                        <StyledButton appearance="link" active textColor="blue" onClick={() => approveSignatory(data.id)}>
+                          Accept
+                        </StyledButton>
+                        <StyledButton appearance="link" active textColor="red">
+                          Decline
+                        </StyledButton>
+                      </ButtonGroup>
+                    </RequestItem>
+                  );
+                })}
+              </RequestList>
 
               <Text>Vault Finalize Requests</Text>
-              <br />
-
-              {finalizeRequestList.map((data) => {
-                return (
-                  <RequestItem key={data.id}>
-                    <Text>{data.vault.name}</Text>
-                    <ButtonGroup>
-                      <Button appearance="link" active color="blue" onClick={() => finalizeVault(data.id)}>
-                        Finalize
-                      </Button>
-                    </ButtonGroup>
-                  </RequestItem>
-                );
-              })}
+              <RequestList>
+                {finalizeRequestList.map((data) => {
+                  return (
+                    <RequestItem key={data.id}>
+                      <Text>{data.vault.name}</Text>
+                      <ButtonGroup>
+                        <StyledButton appearance="link" active textColor="blue" onClick={() => finalizeVault(data.id)}>
+                          Finalize
+                        </StyledButton>
+                      </ButtonGroup>
+                    </RequestItem>
+                  );
+                })}
+              </RequestList>
             </Panel>
           </StyledBoxItem>
         </StyledBox>
@@ -144,9 +145,10 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   );
 };
 
-interface TextProps {
+interface StyleProps {
   fontSize?: string;
   alignSelf?: string;
+  textColor?: string;
 }
 
 const StyledBox = styled(FlexboxGrid)`
@@ -154,10 +156,9 @@ const StyledBox = styled(FlexboxGrid)`
   top: 0;
   bottom: 0;
   width: 100%;
-  //background-color: blue;
 `;
 
-const Text = styled.span<TextProps>`
+const Text = styled.span<StyleProps>`
   font-size: ${(props) => (props.fontSize ? props.fontSize : "16px")};
   font-weight: 600;
   color: #6c6b6b;
@@ -180,6 +181,20 @@ const StyledBoxItem = styled(FlexboxGrid.Item)`
   margin: auto;
   background: white;
   border-radius: 8px;
+  min-height: 65vh;
+  max-height: 65vh;
+  width: 60%;
 `;
 
 const ButtonGroup = styled.div``;
+
+const RequestList = styled.div`
+  overflow-y: scroll;
+  margin: 4px 0;
+  max-height: max-content;
+  height: 27vh;
+`;
+
+const StyledButton = styled(Button)<StyleProps>`
+  color: ${(props) => (props.textColor ? props.textColor : "gray")} !important;
+`;
