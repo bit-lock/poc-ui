@@ -73,4 +73,20 @@ export class Web3Lib {
       })
       .on("error", console.error);
   };
+
+  editSignatories = async (id: number, signatories: string[], shares: number[], address: string) => {
+    const gasPrice = await this.web3.eth.getGasPrice();
+
+    const vaultFunction = this.contract.methods.editSignatories(id, signatories, shares);
+
+    const gasAmount = await vaultFunction.estimateGas({ from: address });
+
+    return vaultFunction
+      .send({ from: address, gasLimit: gasAmount, gasPrice })
+      .on("transactionHash", function (hash: any) {
+        toastr.success(hash, "Signatories edited successfully.");
+        Promise.resolve();
+      })
+      .on("error", console.error);
+  };
 }
