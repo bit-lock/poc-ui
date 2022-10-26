@@ -110,7 +110,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                     {approveRequestList.map((data) => {
                       return (
                         <RequestItem key={data.id}>
-                          <Text>{data.vault.name || "Reyhan"}</Text>
+                          <Text>{data.vault.name}</Text>
                           <ButtonGroup>
                             <StyledButton appearance="link" active textColor="blue" onClick={() => approveSignatory(data.id)}>
                               Accept
