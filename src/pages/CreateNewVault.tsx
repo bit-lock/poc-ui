@@ -61,8 +61,6 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
   return (
     <Wrapper>
-      <StyledBackButton onClick={() => navigate(ROUTE_PATH.HOME)}> Back </StyledBackButton>
-
       <InputContainer>
         <StyledText>Vault Name</StyledText>
         <StyledInput value={vaultName} onChange={(value: string) => setVaultName(value)} />
@@ -137,12 +135,6 @@ const Wrapper = styled.section`
   top: 50%;
   -webkit-transform: translate(-50%, -50%);
   transform: translate(-50%, -50%);
-`;
-
-const StyledBackButton = styled(Button)`
-  width: 20%;
-  align-self: start;
-  margin-bottom: 30px;
 `;
 
 const AddSignatoryButton = styled(Button)`
