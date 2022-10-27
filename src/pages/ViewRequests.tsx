@@ -63,7 +63,6 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
       const waitingFinalizeList = notFinalizedVaults.filter((data) => {
         if (data.isMyOwner) {
           const signatories = data.signatories[2];
-          console.log(signatories, "signatories");
           return !signatories.some((element: any) => {
             return element === "0x0000000000000000000000000000000000000000000000000000000000000000";
           });
@@ -112,10 +111,10 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                         <RequestItem key={data.id}>
                           <Text>{data.vault.name}</Text>
                           <ButtonGroup>
-                            <StyledButton appearance="link" active textColor="blue" onClick={() => approveSignatory(data.id)}>
+                            <StyledButton appearance="link" active color="blue" onClick={() => approveSignatory(data.id)}>
                               Accept
                             </StyledButton>
-                            <StyledButton appearance="link" active textColor="red">
+                            <StyledButton appearance="link" active color="red">
                               Decline
                             </StyledButton>
                           </ButtonGroup>
@@ -135,7 +134,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                         <RequestItem key={data.id}>
                           <Text>{data.vault.name}</Text>
                           <ButtonGroup>
-                            <StyledButton appearance="link" active textColor="blue" onClick={() => finalizeVault(data.id)}>
+                            <StyledButton appearance="link" active text_color="blue" onClick={() => finalizeVault(data.id)}>
                               Finalize
                             </StyledButton>
                           </ButtonGroup>
@@ -157,12 +156,12 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
 interface StyleProps {
   fontSize?: string;
   alignSelf?: string;
-  textColor?: string;
+  color?: string;
 }
 
 const StyledBox = styled(FlexboxGrid)`
   position: absolute;
-  top: 0;
+  top: 50px;
   bottom: 0;
   width: 100%;
 `;
@@ -205,5 +204,5 @@ const RequestList = styled.div`
 `;
 
 const StyledButton = styled(Button)<StyleProps>`
-  color: ${(props) => (props.textColor ? props.textColor : "gray")} !important;
+  color: ${(props) => (props.color ? props.color : "gray")} !important;
 `;

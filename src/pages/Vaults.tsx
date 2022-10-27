@@ -1,6 +1,7 @@
 /* eslint-disable array-callback-return */
 import React, { useEffect, useState } from "react";
-import { Grid, Loader, Modal, Panel, Row } from "rsuite";
+import { useNavigate } from "react-router-dom";
+import { Button, Grid, Loader, Modal, Panel, Row } from "rsuite";
 import styled from "styled-components";
 import { Web3Lib } from "../lib/Web3Lib";
 
@@ -9,6 +10,8 @@ type Props = {
 };
 
 export const Vaults: React.FC<Props> = ({ account }) => {
+  const navigate = useNavigate();
+
   const [vaultList, setVaultList] = useState<Array<any>>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [modalState, setModalState] = useState<{ show: boolean; data?: any }>({ show: false });
@@ -120,7 +123,13 @@ export const Vaults: React.FC<Props> = ({ account }) => {
           if (item.isMyOwner) {
             return (
               <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
-                <StyledPanel bordered header={item.vault.name}>
+                <StyledPanel bordered>
+                  <Header>
+                    <Text fontSize="0.9rem" fontWeight={700}>
+                      {item.vault.name}
+                    </Text>
+                    {item.vault.status === "0x00" && <Button onClick={() => navigate("/edit-signatories/" + item.id)}>Edit</Button>}
+                  </Header>
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
@@ -178,6 +187,12 @@ const Container = styled(Grid)`
   flex-direction: row;
   justify-content: space-around;
   padding: 2rem;
+`;
+
+const Header = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
 `;
 
 const VaultList = styled(Row)`
