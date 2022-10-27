@@ -9,6 +9,7 @@ import WizData from "@script-wiz/wiz-data";
 import toastr from "toastr";
 import { Loader } from "rsuite";
 import { ViewRequests } from "../pages/ViewRequests";
+import { EditVault } from "../pages/EditVault";
 
 const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
@@ -78,6 +79,10 @@ export const AppRouter = (): JSX.Element => {
     {
       path: ROUTE_PATH.VIEW_REQUESTS,
       element: <ViewRequests account={account} publicKey={publicKey} />,
+    },
+    {
+      path: ROUTE_PATH.EDIT_SIGNATORIES,
+      element: <EditVault account={account} />,
     },
     // {
     //   path: ROUTE_PATH.FETCH_UTXO,

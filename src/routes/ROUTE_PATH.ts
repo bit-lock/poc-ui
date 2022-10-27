@@ -4,4 +4,5 @@ export enum ROUTE_PATH {
   CREATE_NEW_VAULT = "/create-new-vault",
   FETCH_UTXO = "/fetch-utxo",
   VIEW_REQUESTS = "/view-requests",
+  EDIT_SIGNATORIES = "/edit-signatories/:id",
 }

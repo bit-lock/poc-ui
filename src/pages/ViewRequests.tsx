@@ -63,7 +63,6 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
       const waitingFinalizeList = notFinalizedVaults.filter((data) => {
         if (data.isMyOwner) {
           const signatories = data.signatories[2];
-          console.log(signatories, "signatories");
           return !signatories.some((element: any) => {
             return element === "0x0000000000000000000000000000000000000000000000000000000000000000";
           });
