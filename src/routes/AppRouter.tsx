@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
 import { CreateNewVault } from "../pages/CreateNewVault";
 import { Home } from "../pages/Home";
 import { Vaults } from "../pages/Vaults";
@@ -10,6 +10,7 @@ import toastr from "toastr";
 import { Loader } from "rsuite";
 import { ViewRequests } from "../pages/ViewRequests";
 import { EditVault } from "../pages/EditVault";
+import { Header } from "../components/Header";
 
 const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
@@ -63,27 +64,40 @@ export const AppRouter = (): JSX.Element => {
     }
   };
 
+  const Layout = () => (
+    <>
+      <Header />
+      <Outlet />
+    </>
+  );
+
   const router = createBrowserRouter([
     {
-      path: ROUTE_PATH.HOME,
-      element: <Home />,
+      element: <Layout />,
+      children: [
+        {
+          path: ROUTE_PATH.HOME,
+          element: <Home />,
+        },
+        {
+          path: ROUTE_PATH.VAULTS,
+          element: <Vaults account={account} />,
+        },
+        {
+          path: ROUTE_PATH.CREATE_NEW_VAULT,
+          element: <CreateNewVault account={account} />,
+        },
+        {
+          path: ROUTE_PATH.VIEW_REQUESTS,
+          element: <ViewRequests account={account} publicKey={publicKey} />,
+        },
+        {
+          path: ROUTE_PATH.EDIT_SIGNATORIES,
+          element: <EditVault account={account} />,
+        },
+      ],
     },
-    {
-      path: ROUTE_PATH.VAULTS,
-      element: <Vaults account={account} />,
-    },
-    {
-      path: ROUTE_PATH.CREATE_NEW_VAULT,
-      element: <CreateNewVault account={account} />,
-    },
-    {
-      path: ROUTE_PATH.VIEW_REQUESTS,
-      element: <ViewRequests account={account} publicKey={publicKey} />,
-    },
-    {
-      path: ROUTE_PATH.EDIT_SIGNATORIES,
-      element: <EditVault account={account} />,
-    },
+
     // {
     //   path: ROUTE_PATH.FETCH_UTXO,
     //   element: <FetchUtxo />,
