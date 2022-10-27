@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Slider, InputGroup, Tooltip, Whisper } from "rsuite";
+import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader } from "rsuite";
 import styled from "styled-components";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
@@ -13,10 +13,12 @@ type Props = {
 };
 
 export const CreateNewVault: React.FC<Props> = ({ account }) => {
+  const navigate = useNavigate();
+
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<Signatory[]>([{ index: 0, address: account, percent: 100 }]);
   const [threshold, setThreshold] = useState<number>(25);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(false);
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
@@ -41,15 +43,21 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   };
 
   const initializeVaultClick = async () => {
+    setLoading(true);
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
     const signatoriesShares = signatories.map((signatory: Signatory) => Math.floor(signatory.percent * 100));
     await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
+    setLoading(false);
 
     navigate(ROUTE_PATH.VAULTS);
   };
 
   const initButonDisabled: boolean = vaultName === "" || threshold === 0;
+
+  if (loading) {
+    return <Loader backdrop content="Initializing vault..." vertical />;
+  }
 
   return (
     <Wrapper>
