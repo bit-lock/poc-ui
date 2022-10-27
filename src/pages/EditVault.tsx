@@ -66,6 +66,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
               return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
             });
             setSignatories(signatoriesPreviousState);
+            setLoading(false);
           })
           .catch(() => {
             toastr.error("Something went wrong.");
@@ -75,9 +76,6 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       .catch(() => {
         toastr.error("Vault not found.");
         navigate(ROUTE_PATH.VAULTS);
-      })
-      .finally(() => {
-        setLoading(false);
       });
   }, [id, navigate]);
 
