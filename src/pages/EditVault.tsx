@@ -3,6 +3,7 @@ import TrashIcon from "@rsuite/icons/Trash";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader } from "rsuite";
 import styled from "styled-components";
+import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
@@ -23,28 +24,62 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [vault, setVault] = useState<any>();
 
+  //   useEffect(() => {
+  //     const web3Instance = new Web3Lib();
+  //     const getVault = async () => {
+  //       const currentVault = await web3Instance.getVaults(id);
+  //       setVault(currentVault);
+
+  //       const currentSignatories = await web3Instance.getSignatories(id);
+
+  //       let signatoriesPreviousState: any = [];
+  //       const address = currentSignatories[0];
+  //       const share = currentSignatories[1];
+
+  //       address.map((item: any, index: number) => {
+  //         return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
+  //       });
+  //       setSignatories(signatoriesPreviousState);
+
+  //       setLoading(false);
+  //     };
+
+  //     getVault();
+  //   }, [id]);
+
   useEffect(() => {
     const web3Instance = new Web3Lib();
-    const getVault = async () => {
-      const currentVault = await web3Instance.getVaults(id);
-      setVault(currentVault);
 
-      const currentSignatories = await web3Instance.getSignatories(id);
+    web3Instance
+      .getVaults(id)
+      .then((res) => {
+        setVault(res);
 
-      let signatoriesPreviousState: any = [];
-      const address = currentSignatories[0];
-      const share = currentSignatories[1];
+        web3Instance
+          .getSignatories(id)
+          .then((res) => {
+            let signatoriesPreviousState: any = [];
+            const address = res[0];
+            const share = res[1];
 
-      address.map((item: any, index: number) => {
-        return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
+            address.map((item: any, index: number) => {
+              return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
+            });
+            setSignatories(signatoriesPreviousState);
+          })
+          .catch(() => {
+            toastr.error("Something went wrong.");
+            navigate(ROUTE_PATH.VAULTS);
+          });
+      })
+      .catch(() => {
+        toastr.error("Vault not found.");
+        navigate(ROUTE_PATH.VAULTS);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      setSignatories(signatoriesPreviousState);
-
-      setLoading(false);
-    };
-
-    getVault();
-  }, [id]);
+  }, [id, navigate]);
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
