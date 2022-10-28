@@ -8,6 +8,7 @@ import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
 import { Signatory } from "../lib/models/Signatory";
+import { VaultDetail } from "../lib/models/VaultDetail";
 
 type Props = {
   account: string;
@@ -19,10 +20,10 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const navigate = useNavigate();
 
-  const [signatories, setSignatories] = useState<any>([]);
+  const [signatories, setSignatories] = useState<Signatory[]>([]);
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(true);
-  const [vault, setVault] = useState<any>();
+  const [vault, setVault] = useState<VaultDetail>();
 
   //   useEffect(() => {
   //     const web3Instance = new Web3Lib();
@@ -58,12 +59,12 @@ export const EditVault: React.FC<Props> = ({ account }) => {
         web3Instance
           .getSignatories(id)
           .then((res) => {
-            let signatoriesPreviousState: any = [];
+            let signatoriesPreviousState: Signatory[] = [];
             const address = res[0];
             const share = res[1];
 
-            address.map((item: any, index: number) => {
-              return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
+            address.map((item: string, index: number) => {
+              return signatoriesPreviousState.push({ index: index, address: item, percent: Number(share[index]) / 100 });
             });
             setSignatories(signatoriesPreviousState);
             setLoading(false);
@@ -121,7 +122,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     <Wrapper>
       <InputContainer>
         <StyledText>Vault Name</StyledText>
-        <StyledInput value={vault.name} disabled />
+        <StyledInput value={vault?.name || ""} disabled />
       </InputContainer>
 
       <div>
