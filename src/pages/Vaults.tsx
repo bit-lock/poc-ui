@@ -3,6 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, Grid, Loader, Modal, Panel, Row } from "rsuite";
 import styled from "styled-components";
+import { Signatories } from "../lib/models/Signatories";
+import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
@@ -12,9 +14,9 @@ type Props = {
 export const Vaults: React.FC<Props> = ({ account }) => {
   const navigate = useNavigate();
 
-  const [vaultList, setVaultList] = useState<Array<any>>([]);
+  const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [modalState, setModalState] = useState<{ show: boolean; data?: any }>({ show: false });
+  const [modalState, setModalState] = useState<{ show: boolean; data?: Signatories }>({ show: false });
 
   useEffect(() => {
     const init = async () => {
@@ -54,12 +56,12 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     init();
   }, [account]);
 
-  const calculateWaitingConfirmCount = (signatories: any[]) => {
-    const currentData = signatories[2];
-    const waitingConfirmationCount = currentData.length;
+  const calculateWaitingConfirmCount = (signatories: Signatories) => {
+    const currentData: string[] = signatories[2];
+    const waitingConfirmationCount: number = currentData.length;
     let confimationCount = 0;
 
-    currentData.forEach((signatory: any) => {
+    currentData.forEach((signatory: string) => {
       if (signatory !== "0x0000000000000000000000000000000000000000000000000000000000000000") confimationCount++;
     });
 
@@ -68,38 +70,40 @@ export const Vaults: React.FC<Props> = ({ account }) => {
 
   const handleClose = () => setModalState({ show: false });
 
-  const handleOpen = (signatories: any) => {
+  const handleOpen = (signatories: Signatories) => {
     setModalState({ show: true, data: signatories });
   };
 
   const renderModal = () => {
-    const signatoriesAddress = modalState.data[0];
-    const percent = modalState.data[1];
-    const confirmation = modalState.data[2];
+    if (modalState.data) {
+      const signatoriesAddress = modalState.data[0];
+      const percent = modalState.data[1];
+      const confirmation = modalState.data[2];
 
-    return (
-      <Modal size="sm" open={modalState.show} onClose={handleClose}>
-        <Modal.Header>
-          <Modal.Title style={{ fontWeight: 700 }}>Signatories</Modal.Title>
-          {signatoriesAddress.map((item: string, index: number) => {
-            return (
-              <div key={index}>
-                <br />
-                <Text fontWeight={700}>Signatory {index + 1}</Text>
-                <br />
-                <Text>Address: {item}</Text>
-                <br />
-                <Text>Shared: {percent[index] / 100}%</Text>
-                <br />
-                {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
-                <br />
-              </div>
-            );
-          })}
-        </Modal.Header>
-        <Modal.Body></Modal.Body>
-      </Modal>
-    );
+      return (
+        <Modal size="sm" open={modalState.show} onClose={handleClose}>
+          <Modal.Header>
+            <Modal.Title style={{ fontWeight: 700 }}>Signatories</Modal.Title>
+            {signatoriesAddress.map((item: string, index: number) => {
+              return (
+                <div key={index}>
+                  <br />
+                  <Text fontWeight={700}>Signatory {index + 1}</Text>
+                  <br />
+                  <Text>Address: {item}</Text>
+                  <br />
+                  <Text>Shared: {Number(percent[index]) / 100}%</Text>
+                  <br />
+                  {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
+                  <br />
+                </div>
+              );
+            })}
+          </Modal.Header>
+          <Modal.Body></Modal.Body>
+        </Modal>
+      );
+    }
   };
 
   if (loading) {

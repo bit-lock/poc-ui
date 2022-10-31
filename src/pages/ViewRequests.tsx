@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
+import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
@@ -10,8 +11,8 @@ type Props = {
 
 export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [approveRequestList, setApproveRequestList] = useState<Array<any>>([]);
-  const [finalizeRequestList, setFinalizeRequestList] = useState<Array<any>>([]);
+  const [approveRequestList, setApproveRequestList] = useState<VaultState[]>([]);
+  const [finalizeRequestList, setFinalizeRequestList] = useState<VaultState[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -46,7 +47,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
 
       const notFinalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x00");
 
-      const approveList = notFinalizedVaults.filter((currentData) => {
+      const approveList: VaultState[] = notFinalizedVaults.filter((currentData) => {
         const signatoryAddressList = currentData.signatories[0];
         const myCurrentIndex = signatoryAddressList.findIndex((address: string) => address.toLowerCase() === myCurrentAdress);
         const signatoryPubKeyList = currentData.signatories[2];
@@ -63,7 +64,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
       const waitingFinalizeList = notFinalizedVaults.filter((data) => {
         if (data.isMyOwner) {
           const signatories = data.signatories[2];
-          return !signatories.some((element: any) => {
+          return !signatories.some((element: string) => {
             return element === "0x0000000000000000000000000000000000000000000000000000000000000000";
           });
         } else {
