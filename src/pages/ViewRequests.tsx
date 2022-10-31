@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
-import { Vault } from "../lib/models/Vault";
+import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
@@ -11,8 +11,8 @@ type Props = {
 
 export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   const [loading, setLoading] = useState<boolean>(true);
-  const [approveRequestList, setApproveRequestList] = useState<Vault[]>([]);
-  const [finalizeRequestList, setFinalizeRequestList] = useState<Vault[]>([]);
+  const [approveRequestList, setApproveRequestList] = useState<VaultState[]>([]);
+  const [finalizeRequestList, setFinalizeRequestList] = useState<VaultState[]>([]);
 
   useEffect(() => {
     const init = async () => {
@@ -47,7 +47,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
 
       const notFinalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x00");
 
-      const approveList: Vault[] = notFinalizedVaults.filter((currentData) => {
+      const approveList: VaultState[] = notFinalizedVaults.filter((currentData) => {
         const signatoryAddressList = currentData.signatories[0];
         const myCurrentIndex = signatoryAddressList.findIndex((address: string) => address.toLowerCase() === myCurrentAdress);
         const signatoryPubKeyList = currentData.signatories[2];

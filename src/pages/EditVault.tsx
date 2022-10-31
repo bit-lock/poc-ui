@@ -7,8 +7,8 @@ import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
-import { Signatory } from "../lib/models/Signatory";
-import { VaultDetail } from "../lib/models/VaultDetail";
+import { SignatoryState } from "../lib/models/SignatoryState";
+import { Vault } from "../lib/models/Vault";
 
 type Props = {
   account: string;
@@ -20,10 +20,10 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const navigate = useNavigate();
 
-  const [signatories, setSignatories] = useState<Signatory[]>([]);
+  const [signatories, setSignatories] = useState<SignatoryState[]>([]);
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(true);
-  const [vault, setVault] = useState<VaultDetail>();
+  const [vault, setVault] = useState<Vault>();
 
   //   useEffect(() => {
   //     const web3Instance = new Web3Lib();
@@ -59,7 +59,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
         web3Instance
           .getSignatories(id)
           .then((res) => {
-            let signatoriesPreviousState: Signatory[] = [];
+            let signatoriesPreviousState: SignatoryState[] = [];
             const address = res[0];
             const share = res[1];
 
@@ -82,7 +82,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
-    const previousState = newSignatory.map((s: Signatory) => {
+    const previousState = newSignatory.map((s: SignatoryState) => {
       return { ...s, percent: (s.percent * (100 - threshold)) / 100 };
     });
 
@@ -105,8 +105,8 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const editVaultClick = async () => {
     setLoading(true);
     const web3Instance = new Web3Lib();
-    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
-    const signatoriesShares = signatories.map((signatory: Signatory) => Math.floor(signatory.percent * 100));
+    const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
+    const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
 
     await web3Instance.editSignatories(id, signatoriesAddress, signatoriesShares, account);
     setLoading(false);
@@ -126,7 +126,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       </InputContainer>
 
       <div>
-        {signatories.map((signatory: Signatory, index: number) => {
+        {signatories.map((signatory: SignatoryState, index: number) => {
           return (
             <InputContainer key={index}>
               <StyledText>Signatory {index + 1}</StyledText>

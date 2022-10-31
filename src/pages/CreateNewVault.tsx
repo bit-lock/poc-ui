@@ -6,7 +6,7 @@ import styled from "styled-components";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
-import { Signatory } from "../lib/models/Signatory";
+import { SignatoryState } from "../lib/models/SignatoryState";
 
 type Props = {
   account: string;
@@ -16,13 +16,13 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const navigate = useNavigate();
 
   const [vaultName, setVaultName] = useState<string>("");
-  const [signatories, setSignatories] = useState<Signatory[]>([{ index: 0, address: account, percent: 100 }]);
+  const [signatories, setSignatories] = useState<SignatoryState[]>([{ index: 0, address: account, percent: 100 }]);
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(false);
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
-    const previousState = newSignatory.map((s: Signatory) => {
+    const previousState = newSignatory.map((s: SignatoryState) => {
       return { ...s, percent: (s.percent * (100 - threshold)) / 100 };
     });
 
@@ -45,8 +45,8 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const initializeVaultClick = async () => {
     setLoading(true);
     const web3Instance = new Web3Lib();
-    const signatoriesAddress = signatories.map((signatory: Signatory) => signatory.address);
-    const signatoriesShares = signatories.map((signatory: Signatory) => Math.floor(signatory.percent * 100));
+    const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
+    const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
     await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
     setLoading(false);
 
@@ -67,7 +67,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       </InputContainer>
 
       <div>
-        {signatories.map((signatory: Signatory, index) => {
+        {signatories.map((signatory: SignatoryState, index) => {
           return (
             <InputContainer key={index}>
               <StyledText>Signatory {index + 1}</StyledText>

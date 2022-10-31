@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Grid, Loader, Modal, Panel, Row } from "rsuite";
 import styled from "styled-components";
 import { Signatories } from "../lib/models/Signatories";
-import { Vault } from "../lib/models/Vault";
+import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
@@ -14,7 +14,7 @@ type Props = {
 export const Vaults: React.FC<Props> = ({ account }) => {
   const navigate = useNavigate();
 
-  const [vaultList, setVaultList] = useState<Vault[]>([]);
+  const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [modalState, setModalState] = useState<{ show: boolean; data?: Signatories }>({ show: false });
 
