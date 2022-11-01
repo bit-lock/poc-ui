@@ -14,6 +14,8 @@ type Props = {
   account: string;
 };
 
+const timeRange: number[] = [...Array(30).keys()];
+
 export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const navigate = useNavigate();
 
@@ -22,8 +24,6 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-
-  const numbers: number[] = [...Array(30).keys()];
 
   const addButtonClick = () => {
     const newSignatory = [...signatories];
@@ -183,7 +183,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
               <StyledText>Degrading Period {index + 1} </StyledText>
               <DropdownGroup>
                 <SDropdown title={data.date.value} activeKey={data.date.value}>
-                  {numbers.map((time, i: number) => {
+                  {timeRange.map((time, i: number) => {
                     return (
                       <Dropdown.Item key={i} eventKey={time + 1} onSelect={(e) => changeDegradingPeriodValue(index, e)}>
                         {time + 1}
