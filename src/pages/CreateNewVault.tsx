@@ -1,16 +1,20 @@
 import React, { useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
 import { useNavigate } from "react-router-dom";
-import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader } from "rsuite";
+import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader, Dropdown } from "rsuite";
 import styled from "styled-components";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
+import { secondsForUnits } from "../helper";
+import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 
 type Props = {
   account: string;
 };
+
+const timeRange: number[] = [...Array(30).keys()];
 
 export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const navigate = useNavigate();
@@ -18,6 +22,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<SignatoryState[]>([{ index: 0, address: account, percent: 100 }]);
   const [threshold, setThreshold] = useState<number>(25);
+  const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const addButtonClick = () => {
@@ -40,6 +45,62 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
     previousState.splice(willRemoveIndex, 1);
     setSignatories(previousState);
+  };
+
+  const addDegradingButtonClick = () => {
+    const newDegradingPeriod = [...degradingPeriods];
+
+    if (newDegradingPeriod.length === 0) {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: threshold });
+    } else {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: newDegradingPeriod[newDegradingPeriod.length - 1].shared });
+    }
+
+    setDegradingPeriods(newDegradingPeriod);
+  };
+
+  const changeDegradingPeriod = (index: number, value: string) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const kacincidegisicek = clonedDegradingPeriods[index];
+    kacincidegisicek.date.unit = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
+
+  const changeDegradingPeriodValue = (index: number, value: number) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const kacincidegisicek = clonedDegradingPeriods[index];
+    kacincidegisicek.date.value = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
+
+  const changeDegradingPeriodShared = (index: number, value: number) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const currentData = clonedDegradingPeriods[index];
+    currentData.shared = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
+
+  const calculateMaxValue = (index: number) => {
+    switch (index) {
+      case 0: {
+        return threshold;
+      }
+      case 1: {
+        return degradingPeriods[0].shared;
+      }
+      case 2: {
+        return degradingPeriods[1].shared;
+      }
+      default: {
+        return 100;
+      }
+    }
   };
 
   const initializeVaultClick = async () => {
@@ -100,7 +161,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
           );
         })}
       </div>
-      <AddSignatoryButton onClick={addButtonClick}>Add New Signatory</AddSignatoryButton>
+      <CustomAddButton onClick={addButtonClick}>Add New Signatory</CustomAddButton>
 
       <InputContainer>
         <StyledText>Threshold</StyledText>
@@ -108,18 +169,67 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
           progress
           step={0.01}
           defaultValue={25.0}
+          margin="auto auto 1rem 5.4rem"
           onChange={(value) => {
             setThreshold(value);
           }}
         />
       </InputContainer>
 
-      <AddSignatoryButton appearance="primary" onClick={initializeVaultClick} disabled={initButonDisabled}>
+      {degradingPeriods.map((data, index) => {
+        return (
+          <div key={index}>
+            <InputContainer>
+              <StyledText>Degrading Period {index + 1} </StyledText>
+              <DropdownGroup>
+                <SDropdown title={data.date.value} activeKey={data.date.value}>
+                  {timeRange.map((time, i: number) => {
+                    return (
+                      <Dropdown.Item key={i} eventKey={time + 1} onSelect={(e) => changeDegradingPeriodValue(index, e)}>
+                        {time + 1}
+                      </Dropdown.Item>
+                    );
+                  })}
+                </SDropdown>
+
+                <Dropdown title={data.date.unit} activeKey={data.date.unit}>
+                  {secondsForUnits.map((time, i: number) => {
+                    return (
+                      <Dropdown.Item key={i} eventKey={time.unit} onSelect={(e) => changeDegradingPeriod(index, e)}>
+                        {time.unit}
+                      </Dropdown.Item>
+                    );
+                  })}
+                </Dropdown>
+              </DropdownGroup>
+            </InputContainer>
+            <StyledSlider
+              progress
+              max={calculateMaxValue(index)}
+              step={0.01}
+              value={data.shared}
+              onChange={(value) => {
+                changeDegradingPeriodShared(index, value);
+              }}
+            />
+          </div>
+        );
+      })}
+      <CustomAddButton onClick={addDegradingButtonClick} disabled={degradingPeriods.length === 3}>
+        Add Degrading Period
+      </CustomAddButton>
+
+      <CustomAddButton appearance="primary" onClick={initializeVaultClick} disabled={initButonDisabled}>
         Initialize Vault
-      </AddSignatoryButton>
+      </CustomAddButton>
     </Wrapper>
   );
 };
+
+interface StyleProps {
+  margin?: string;
+  width?: string;
+}
 
 const Wrapper = styled.section`
   padding: 2em;
@@ -137,39 +247,41 @@ const Wrapper = styled.section`
   transform: translate(-50%, -50%);
 `;
 
-const AddSignatoryButton = styled(Button)`
+const CustomAddButton = styled(Button)`
   width: 65%;
   height: 40px;
-  align-self: end;
-  margin: auto 16% 10px auto;
+  align-self: center;
+  margin: auto auto 1rem auto;
 `;
 
 const StyledInput = styled(Input)`
   width: 65%;
-  margin: auto 3% auto 85px;
+  margin: auto 1rem auto 4.4rem;
   align-self: end;
 `;
 const StyledInputGroup = styled(InputGroup)`
   width: 65%;
-  margin: auto 3% auto 85px;
+  margin: auto auto 1rem 4.4rem;
   align-self: end;
 `;
 
-const StyledSlider = styled(Slider)`
-  width: 65%;
-  margin: auto 3% auto 95px;
+const StyledSlider = styled(Slider)<StyleProps>`
+  width: ${(props) => (props.width ? props.width : "65%")};
+  margin: ${(props) => (props.margin ? props.margin : "auto auto 1rem auto")};
   align-self: end;
 `;
 
 const StyledText = styled.p`
   font-size: 1rem;
   color: #f7931a;
+  align-self: center;
 `;
 
 const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
-  margin-bottom: 15px;
+  margin-bottom: 1rem;
+  justify-content: start;
 `;
 
 const PercentContainer = styled.div`
@@ -190,4 +302,20 @@ const Delete = styled(TrashIcon)`
   align-self: center;
   margin-left: 5px;
   cursor: pointer;
+`;
+
+const DropdownGroup = styled.div`
+  width: 10rem;
+  display: flex;
+  justify-content: space-between;
+  margin-left: 1rem;
+`;
+
+const SDropdown = styled(Dropdown)`
+  .rs-dropdown-menu {
+    height: 10.25rem;
+    width: 4rem;
+    z-index: 500;
+    overflow-y: auto;
+  }
 `;
