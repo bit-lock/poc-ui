@@ -20,7 +20,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<SignatoryState[]>([{ index: 0, address: account, percent: 100 }]);
   const [threshold, setThreshold] = useState<number>(25);
-  const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([{ date: { value: 10, unit: secondsForUnits[0].unit }, shared: 100 }]);
+  const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const numbers: number[] = [...Array(30).keys()];
@@ -49,7 +49,12 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
   const addDegradingButtonClick = () => {
     const newDegradingPeriod = [...degradingPeriods];
-    newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: 100 });
+
+    if (newDegradingPeriod.length === 0) {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: threshold });
+    } else {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: newDegradingPeriod[newDegradingPeriod.length - 1].shared });
+    }
 
     setDegradingPeriods(newDegradingPeriod);
   };
@@ -75,8 +80,8 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const changeDegradingPeriodShared = (index: number, value: number) => {
     const clonedDegradingPeriods = [...degradingPeriods];
 
-    const kacincidegisicek = clonedDegradingPeriods[index];
-    kacincidegisicek.shared = value;
+    const currentData = clonedDegradingPeriods[index];
+    currentData.shared = value;
 
     setDegradingPeriods(clonedDegradingPeriods);
   };
@@ -202,7 +207,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
               progress
               max={calculateMaxValue(index)}
               step={0.01}
-              defaultValue={25.0}
+              value={data.shared}
               onChange={(value) => {
                 changeDegradingPeriodShared(index, value);
               }}
