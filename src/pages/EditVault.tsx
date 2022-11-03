@@ -1,5 +1,8 @@
 import React, { useEffect, useState } from "react";
 import TrashIcon from "@rsuite/icons/Trash";
+import EditIcon from "@rsuite/icons/Edit";
+import CheckIcon from "@rsuite/icons/Check";
+import CloseIcon from "@rsuite/icons/Close";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader } from "rsuite";
 import styled from "styled-components";
@@ -24,6 +27,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(true);
   const [vault, setVault] = useState<Vault>();
+  const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
 
   //   useEffect(() => {
   //     const web3Instance = new Web3Lib();
@@ -114,6 +118,34 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     navigate(ROUTE_PATH.VAULTS);
   };
 
+  const onChangeSharedInput = (index: number, inputValue: string) => {
+    const value = Number(inputValue);
+
+    if (value > 99.99) {
+      setSelectedValues({ index: index, value: 99.99 });
+    } else if (value < 0) setSelectedValues({ index: index, value: 0.01 });
+    else setSelectedValues({ index, value });
+  };
+
+  const editButtonClick = (index: number, value: number) => {
+    setSelectedValues({ index, value });
+  };
+
+  const saveInputValue = (index: number, currentValue: number) => {
+    const clonedSignatories = [...signatories];
+
+    const previousState = clonedSignatories.map((s, i: number) => {
+      if (i === index) {
+        return { ...s, percent: selectedValues?.value || 0 };
+      } else {
+        return { ...s, percent: Number((s.percent * ((currentValue - (selectedValues?.value || 0)) / (100 - currentValue)) + s.percent).toFixed(2)) };
+      }
+    });
+
+    setSignatories(previousState);
+    setSelectedValues(undefined);
+  };
+
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }
@@ -146,15 +178,45 @@ export const EditVault: React.FC<Props> = ({ account }) => {
                   </InputGroup.Button>
                 </Whisper>
               </StyledInputGroup>
-
-              <PercentContainer>%{signatory.percent.toFixed(2)}</PercentContainer>
-              {index !== 0 && (
-                <Delete
-                  onClick={() => {
-                    removeButtonClick(index, signatory.percent);
+              <IconContainer>
+                <Input
+                  type="number"
+                  disabled={index !== selectedValues?.index}
+                  style={{ width: "100px" }}
+                  value={index !== selectedValues?.index ? Number(signatory.percent) : selectedValues?.value || ""}
+                  onChange={(e: string) => {
+                    onChangeSharedInput(index, e);
                   }}
                 />
-              )}
+                {index !== 0 && index !== selectedValues?.index && (
+                  <Delete
+                    onClick={() => {
+                      removeButtonClick(index, signatory.percent);
+                    }}
+                  />
+                )}
+                {index !== selectedValues?.index && (
+                  <Edit
+                    onClick={() => {
+                      editButtonClick(index, signatory.percent);
+                    }}
+                  />
+                )}
+                {index === selectedValues?.index && (
+                  <EditContainer>
+                    <Check
+                      onClick={() => {
+                        saveInputValue(index, signatory.percent);
+                      }}
+                    />
+                    <Close
+                      onClick={() => {
+                        setSelectedValues(undefined);
+                      }}
+                    />
+                  </EditContainer>
+                )}
+              </IconContainer>
             </InputContainer>
           );
         })}
@@ -229,18 +291,11 @@ const InputContainer = styled.div`
   display: flex;
   flex-direction: row;
   margin-bottom: 15px;
-`;
-
-const PercentContainer = styled.div`
-  display: flex;
-  font-size: 16px;
-  align-items: center;
-  background: gray;
-  padding: 9px;
-  color: wheat;
-  border-radius: 2px;
-  font-weight: 600;
-  min-width: 75px;
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
 
 const Delete = styled(TrashIcon)`
@@ -249,4 +304,40 @@ const Delete = styled(TrashIcon)`
   align-self: center;
   margin-left: 5px;
   cursor: pointer;
+`;
+
+const Edit = styled(EditIcon)`
+  width: 1.25rem;
+  height: 1.25rem;
+  align-self: center;
+  margin: auto 5px;
+  cursor: pointer;
+`;
+
+const Check = styled(CheckIcon)`
+  width: 1.25rem;
+  height: 1.25rem;
+  align-self: center;
+  margin: auto 5px;
+  cursor: pointer;
+`;
+
+const Close = styled(CloseIcon)`
+  width: 1.25rem;
+  height: 1.25rem;
+  align-self: center;
+  margin: auto 5px;
+  cursor: pointer;
+`;
+
+const IconContainer = styled.div`
+  display: flex;
+  margin-left: 0;
+  min-width: 156px;
+`;
+
+const EditContainer = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
