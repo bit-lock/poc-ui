@@ -83,7 +83,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
       return (
         <Modal size="sm" open={modalState.show} onClose={handleClose}>
           <Modal.Header>
-            <Modal.Title style={{ fontWeight: 700 }}>Signatories</Modal.Title>
+            <ModalTitle>Signatories</ModalTitle>
             {signatoriesAddress.map((item: string, index: number) => {
               return (
                 <div key={index}>
@@ -227,4 +227,8 @@ const StyledPanel = styled(Panel)`
   display: flex;
   flex-direction: column;
   box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px, rgba(60, 64, 67, 0.15) 0px 1px 3px 1px;
+`;
+
+const ModalTitle = styled(Modal.Title)`
+  font-weight: 700;
 `;
