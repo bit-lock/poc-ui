@@ -18,10 +18,10 @@ export class Web3Lib {
     this.contract = new this.web3.eth.Contract(BtcVault.abi as any, BtcVault.address);
   };
 
-  initialVault = async (address: string, name: string, threshold: number, signatories: string[], shares: number[]) => {
+  initialVault = async (address: string, name: string, threshold: number, signatories: string[], shares: number[], authorizedAddressList: string[], tsList: any) => {
     const gasPrice = await this.web3.eth.getGasPrice();
 
-    const vaultFunction = this.contract.methods.initializeVault(name, Math.floor(threshold), signatories, shares);
+    const vaultFunction = this.contract.methods.initializeVault(name, Math.floor(threshold), signatories, shares, authorizedAddressList, tsList);
 
     const gasAmount = await vaultFunction.estimateGas({ from: address });
 
