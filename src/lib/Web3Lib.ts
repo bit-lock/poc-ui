@@ -3,6 +3,7 @@ import BtcVault from "./contracts/BtcVault.json";
 import toastr from "toastr";
 import { VaultContract } from "./models/VaultContract";
 import { Signatories } from "./models/Signatories";
+import { TimelockThreshold } from "./models/TimelockThreshold";
 
 export class Web3Lib {
   private web3: Web3;
@@ -18,7 +19,15 @@ export class Web3Lib {
     this.contract = new this.web3.eth.Contract(BtcVault.abi as any, BtcVault.address);
   };
 
-  initialVault = async (address: string, name: string, threshold: number, signatories: string[], shares: number[], authorizedAddressList: string[], tsList: any) => {
+  initialVault = async (
+    address: string,
+    name: string,
+    threshold: number,
+    signatories: string[],
+    shares: number[],
+    authorizedAddressList: string[],
+    tsList: TimelockThreshold[]
+  ) => {
     const gasPrice = await this.web3.eth.getGasPrice();
 
     const vaultFunction = this.contract.methods.initializeVault(name, Math.floor(threshold), signatories, shares, authorizedAddressList, tsList);
