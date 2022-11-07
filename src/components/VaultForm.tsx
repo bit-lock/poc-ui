@@ -230,13 +230,6 @@ const Wrapper = styled.section`
   transform: translate(-50%, -50%);
 `;
 
-const AddSignatoryButton = styled(Button)`
-  width: 65%;
-  height: 40px;
-  align-self: end;
-  margin: auto 16% 10px auto;
-`;
-
 const StyledInput = styled(Input)`
   width: 65%;
   margin: auto 3% auto 85px;

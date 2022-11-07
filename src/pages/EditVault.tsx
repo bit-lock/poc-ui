@@ -5,7 +5,6 @@ import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
-import { Vault } from "../lib/models/Vault";
 import { VaultForm } from "../components/VaultForm";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { secondsForUnits } from "../helper";
@@ -25,32 +24,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(true);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
-  const [vault, setVault] = useState<Vault>();
-
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
-
-  //   useEffect(() => {
-  //     const web3Instance = new Web3Lib();
-  //     const getVault = async () => {
-  //       const currentVault = await web3Instance.getVaults(id);
-  //       setVault(currentVault);
-
-  //       const currentSignatories = await web3Instance.getSignatories(id);
-
-  //       let signatoriesPreviousState: any = [];
-  //       const address = currentSignatories[0];
-  //       const share = currentSignatories[1];
-
-  //       address.map((item: any, index: number) => {
-  //         return signatoriesPreviousState.push({ index: index, address: item, percent: share[index] / 100 });
-  //       });
-  //       setSignatories(signatoriesPreviousState);
-
-  //       setLoading(false);
-  //     };
-
-  //     getVault();
-  //   }, [id]);
 
   useEffect(() => {
     const web3Instance = new Web3Lib();
@@ -58,7 +32,6 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     web3Instance
       .getVaults(id)
       .then((res) => {
-        setVault(res);
         setVaultName(res.name);
 
         web3Instance
@@ -72,15 +45,18 @@ export const EditVault: React.FC<Props> = ({ account }) => {
               return signatoriesPreviousState.push({ index: index, address: item, percent: Number(share[index]) / 100 });
             });
             setSignatories(signatoriesPreviousState);
-            setLoading(false);
           })
           .catch(() => {
             toastr.error("Something went wrong.");
             navigate(ROUTE_PATH.VAULTS);
+          })
+          .finally(() => {
+            setLoading(false);
           });
       })
       .catch(() => {
         toastr.error("Vault not found.");
+        setLoading(false);
         navigate(ROUTE_PATH.VAULTS);
       });
   }, [id, navigate]);
@@ -200,36 +176,16 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       formOnClick={editVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
       removeButtonOnClick={removeButtonClick}
-      vaultNameChangeCallback={(vaultName: string) => {
-        setVaultName(vaultName);
-      }}
-      signatoriesChangeCallback={(signatories: SignatoryState[]) => {
-        setSignatories(signatories);
-      }}
-      thresholdChangeCallback={(threshold: number) => {
-        setThreshold(threshold);
-      }}
-      degradingPeriodsChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriod(index, e);
-      }}
-      degradingPeriodValueChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriodValue(index, e);
-      }}
-      degradingPeriodSharedChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriodShared(index, e);
-      }}
-      onChangeSharedInputCallback={(index: number, e: string) => {
-        onChangeSharedInput(index, e);
-      }}
-      selectedValuesChangeCallback={(value: any) => {
-        setSelectedValues(value);
-      }}
-      editButtonClick={(index: number, value: number) => {
-        editButtonClick(index, value);
-      }}
-      saveInputValue={(index: number, value: number) => {
-        saveInputValue(index, value);
-      }}
+      vaultNameChangeCallback={setVaultName}
+      signatoriesChangeCallback={setSignatories}
+      thresholdChangeCallback={setThreshold}
+      degradingPeriodsChangeCallback={changeDegradingPeriod}
+      degradingPeriodValueChangeCallback={changeDegradingPeriodValue}
+      degradingPeriodSharedChangeCallback={changeDegradingPeriodShared}
+      onChangeSharedInputCallback={onChangeSharedInput}
+      selectedValuesChangeCallback={setSelectedValues}
+      editButtonClick={editButtonClick}
+      saveInputValue={saveInputValue}
     />
   );
 };

@@ -140,36 +140,16 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       formOnClick={initializeVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
       removeButtonOnClick={removeButtonClick}
-      vaultNameChangeCallback={(vaultName: string) => {
-        setVaultName(vaultName);
-      }}
-      signatoriesChangeCallback={(signatories: SignatoryState[]) => {
-        setSignatories(signatories);
-      }}
-      thresholdChangeCallback={(threshold: number) => {
-        setThreshold(threshold);
-      }}
-      degradingPeriodsChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriod(index, e);
-      }}
-      degradingPeriodValueChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriodValue(index, e);
-      }}
-      degradingPeriodSharedChangeCallback={(index: number, e: any) => {
-        changeDegradingPeriodShared(index, e);
-      }}
-      onChangeSharedInputCallback={(index: number, e: string) => {
-        onChangeSharedInput(index, e);
-      }}
-      selectedValuesChangeCallback={(value: any) => {
-        setSelectedValues(value);
-      }}
-      editButtonClick={(index: number, value: number) => {
-        editButtonClick(index, value);
-      }}
-      saveInputValue={(index: number, value: number) => {
-        saveInputValue(index, value);
-      }}
+      vaultNameChangeCallback={setVaultName}
+      signatoriesChangeCallback={setSignatories}
+      thresholdChangeCallback={setThreshold}
+      degradingPeriodsChangeCallback={changeDegradingPeriod}
+      degradingPeriodValueChangeCallback={changeDegradingPeriodValue}
+      degradingPeriodSharedChangeCallback={changeDegradingPeriodShared}
+      onChangeSharedInputCallback={onChangeSharedInput}
+      selectedValuesChangeCallback={setSelectedValues}
+      editButtonClick={editButtonClick}
+      saveInputValue={saveInputValue}
     />
   );
 };
