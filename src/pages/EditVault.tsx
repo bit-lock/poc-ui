@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
-import TrashIcon from "@rsuite/icons/Trash";
-import EditIcon from "@rsuite/icons/Edit";
-import CheckIcon from "@rsuite/icons/Check";
-import CloseIcon from "@rsuite/icons/Close";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Input, Slider, InputGroup, Tooltip, Whisper, Loader } from "rsuite";
-import styled from "styled-components";
+import { Loader } from "rsuite";
 import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
-import CopyIcon from "../Svg/Icons/Copy";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
 import { Vault } from "../lib/models/Vault";
+import { VaultForm } from "../components/VaultForm";
+import { DegradingPeriod } from "../lib/models/DegradingPeriod";
+import { secondsForUnits } from "../helper";
 
 type Props = {
   account: string;
@@ -23,10 +20,13 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const navigate = useNavigate();
 
+  const [vaultName, setVaultName] = useState<string>("");
   const [signatories, setSignatories] = useState<SignatoryState[]>([]);
   const [threshold, setThreshold] = useState<number>(25);
   const [loading, setLoading] = useState<boolean>(true);
+  const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [vault, setVault] = useState<Vault>();
+
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
 
   //   useEffect(() => {
@@ -59,6 +59,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       .getVaults(id)
       .then((res) => {
         setVault(res);
+        setVaultName(res.name);
 
         web3Instance
           .getSignatories(id)
@@ -145,199 +146,90 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     setSignatories(previousState);
     setSelectedValues(undefined);
   };
+  const addDegradingButtonClick = () => {
+    const newDegradingPeriod = [...degradingPeriods];
+
+    if (newDegradingPeriod.length === 0) {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: threshold });
+    } else {
+      newDegradingPeriod.push({ date: { value: 10, unit: secondsForUnits[0].unit }, shared: newDegradingPeriod[newDegradingPeriod.length - 1].shared });
+    }
+
+    setDegradingPeriods(newDegradingPeriod);
+  };
+
+  const changeDegradingPeriod = (index: number, value: string) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const degradingPeriod = clonedDegradingPeriods[index];
+    degradingPeriod.date.unit = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
+
+  const changeDegradingPeriodValue = (index: number, value: number) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const degradingPeriod = clonedDegradingPeriods[index];
+    degradingPeriod.date.value = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
+
+  const changeDegradingPeriodShared = (index: number, value: number) => {
+    const clonedDegradingPeriods = [...degradingPeriods];
+
+    const currentData = clonedDegradingPeriods[index];
+    currentData.shared = value;
+
+    setDegradingPeriods(clonedDegradingPeriods);
+  };
 
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }
 
   return (
-    <Wrapper>
-      <InputContainer>
-        <StyledText>Vault Name</StyledText>
-        <StyledInput value={vault?.name || ""} disabled />
-      </InputContainer>
-
-      <div>
-        {signatories.map((signatory: SignatoryState, index: number) => {
-          return (
-            <InputContainer key={index}>
-              <StyledText>Signatory {index + 1}</StyledText>
-              <StyledInputGroup>
-                <Input
-                  placeholder={"0x ETH Address"}
-                  value={signatory.address}
-                  onChange={(value: string) => {
-                    const clonedSignatories = [...signatories];
-                    clonedSignatories[index].address = value.replace(/\s/g, "");
-                    setSignatories(clonedSignatories);
-                  }}
-                />
-                <Whisper placement="top" trigger="click" speaker={<Tooltip>ETH Address</Tooltip>}>
-                  <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.address || "")}>
-                    <CopyIcon width="1rem" height="1rem" />
-                  </InputGroup.Button>
-                </Whisper>
-              </StyledInputGroup>
-              <IconContainer>
-                <Input
-                  type="number"
-                  disabled={index !== selectedValues?.index}
-                  style={{ width: "100px" }}
-                  value={index !== selectedValues?.index ? Number(signatory.percent) : selectedValues?.value || ""}
-                  onChange={(e: string) => {
-                    onChangeSharedInput(index, e);
-                  }}
-                />
-                {index !== 0 && index !== selectedValues?.index && (
-                  <Delete
-                    onClick={() => {
-                      removeButtonClick(index, signatory.percent);
-                    }}
-                  />
-                )}
-                {index !== selectedValues?.index && (
-                  <Edit
-                    onClick={() => {
-                      editButtonClick(index, signatory.percent);
-                    }}
-                  />
-                )}
-                {index === selectedValues?.index && (
-                  <EditContainer>
-                    <Check
-                      onClick={() => {
-                        saveInputValue(index, signatory.percent);
-                      }}
-                    />
-                    <Close
-                      onClick={() => {
-                        setSelectedValues(undefined);
-                      }}
-                    />
-                  </EditContainer>
-                )}
-              </IconContainer>
-            </InputContainer>
-          );
-        })}
-      </div>
-      <AddSignatoryButton onClick={addButtonClick}>Add New Signatory</AddSignatoryButton>
-
-      <InputContainer>
-        <StyledText>Threshold</StyledText>
-        <StyledSlider
-          progress
-          step={0.01}
-          defaultValue={25.0}
-          onChange={(value) => {
-            setThreshold(value);
-          }}
-        />
-      </InputContainer>
-
-      <AddSignatoryButton appearance="primary" onClick={editVaultClick}>
-        Edit Vault
-      </AddSignatoryButton>
-    </Wrapper>
+    <VaultForm
+      vaultName={vaultName}
+      signatories={signatories}
+      threshold={threshold}
+      degradingPeriods={degradingPeriods}
+      selectedValues={selectedValues}
+      addNewSignatoryOnClick={addButtonClick}
+      formOnClick={editVaultClick}
+      addDegradingButtonClick={addDegradingButtonClick}
+      removeButtonOnClick={removeButtonClick}
+      vaultNameChangeCallback={(vaultName: string) => {
+        setVaultName(vaultName);
+      }}
+      signatoriesChangeCallback={(signatories: SignatoryState[]) => {
+        setSignatories(signatories);
+      }}
+      thresholdChangeCallback={(threshold: number) => {
+        setThreshold(threshold);
+      }}
+      degradingPeriodsChangeCallback={(index: number, e: any) => {
+        changeDegradingPeriod(index, e);
+      }}
+      degradingPeriodValueChangeCallback={(index: number, e: any) => {
+        changeDegradingPeriodValue(index, e);
+      }}
+      degradingPeriodSharedChangeCallback={(index: number, e: any) => {
+        changeDegradingPeriodShared(index, e);
+      }}
+      onChangeSharedInputCallback={(index: number, e: string) => {
+        onChangeSharedInput(index, e);
+      }}
+      selectedValuesChangeCallback={(value: any) => {
+        setSelectedValues(value);
+      }}
+      editButtonClick={(index: number, value: number) => {
+        editButtonClick(index, value);
+      }}
+      saveInputValue={(index: number, value: number) => {
+        saveInputValue(index, value);
+      }}
+    />
   );
 };
-
-const Wrapper = styled.section`
-  padding: 2em;
-  position: absolute;
-  display: flex;
-  justify-content: center;
-  width: 65%;
-  border: 1px solid gray;
-  border-radius: 10px;
-  flex-direction: column;
-  overflow: auto;
-  left: 50%;
-  top: 50%;
-  -webkit-transform: translate(-50%, -50%);
-  transform: translate(-50%, -50%);
-`;
-
-const AddSignatoryButton = styled(Button)`
-  width: 65%;
-  height: 40px;
-  align-self: end;
-  margin: auto 16% 10px auto;
-`;
-
-const StyledInput = styled(Input)`
-  width: 65%;
-  margin: auto 3% auto 85px;
-  align-self: end;
-`;
-const StyledInputGroup = styled(InputGroup)`
-  width: 65%;
-  margin: auto 3% auto 85px;
-  align-self: end;
-`;
-
-const StyledSlider = styled(Slider)`
-  width: 65%;
-  margin: auto 3% auto 95px;
-  align-self: end;
-`;
-
-const StyledText = styled.p`
-  font-size: 1rem;
-  color: #f7931a;
-`;
-
-const InputContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  margin-bottom: 15px;
-  input::-webkit-outer-spin-button,
-  input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-`;
-
-const Delete = styled(TrashIcon)`
-  width: 1.25rem;
-  height: 1.25rem;
-  align-self: center;
-  margin-left: 5px;
-  cursor: pointer;
-`;
-
-const Edit = styled(EditIcon)`
-  width: 1.25rem;
-  height: 1.25rem;
-  align-self: center;
-  margin: auto 5px;
-  cursor: pointer;
-`;
-
-const Check = styled(CheckIcon)`
-  width: 1.25rem;
-  height: 1.25rem;
-  align-self: center;
-  margin: auto 5px;
-  cursor: pointer;
-`;
-
-const Close = styled(CloseIcon)`
-  width: 1.25rem;
-  height: 1.25rem;
-  align-self: center;
-  margin: auto 5px;
-  cursor: pointer;
-`;
-
-const IconContainer = styled.div`
-  display: flex;
-  margin-left: 0;
-  min-width: 156px;
-`;
-
-const EditContainer = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
