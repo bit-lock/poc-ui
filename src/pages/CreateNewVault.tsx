@@ -8,6 +8,7 @@ import { dateToEpochTimestamp, secondsForUnits } from "../helper";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { VaultForm } from "../components/VaultForm";
 import { TimelockThreshold } from "../lib/models/TimelockThreshold";
+import { DATE_UNIT } from "../lib/enum/DATE_UNIT";
 
 type Props = {
   account: string;
@@ -136,22 +137,42 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
     // const editedThreshold = threshold * 100;
 
-    // const date = new Date();
+    const date = new Date();
 
-    // const editedPeriods: TimelockThreshold[] = degradingPeriods.map((dp) => {
-    //   let timelock = 0;
+    const editedPeriods: TimelockThreshold[] = degradingPeriods.map((dp) => {
+      let timelock = 0;
 
-    //   if (dp.date.unit === "DAYS") {
-    //     timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value));
-    //   }
+      switch (dp.date.unit) {
+        case DATE_UNIT.DAYS:
+          timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value));
+          break;
 
-    //   return {
-    //     timelock,
-    //     threshold: dp.shared,
-    //   };
-    // });
+        case DATE_UNIT.WEEKS:
+          timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value * 7));
+          break;
 
-    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, []);
+        case DATE_UNIT.MONTS:
+          timelock = dateToEpochTimestamp(date.setMonth(date.getMonth() + dp.date.value));
+          break;
+
+        case DATE_UNIT.YEARS:
+          timelock = dateToEpochTimestamp(date.setFullYear(date.getFullYear() + dp.date.value));
+          break;
+
+        default:
+          break;
+      }
+
+      // Math.floor is temp for decimal bugs.
+      return {
+        timelock: timelock,
+        threshold: dp.shared * 100,
+      };
+    });
+
+    console.log(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
+
+    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
     setLoading(false);
 
     navigate(ROUTE_PATH.VAULTS);

@@ -8,7 +8,6 @@ import { SignatoryState } from "../lib/models/SignatoryState";
 import { VaultForm } from "../components/VaultForm";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { secondsForUnits } from "../helper";
-import { AuthorizedAddresses } from "../lib/models/AuthorizedAddress";
 
 type Props = {
   account: string;
