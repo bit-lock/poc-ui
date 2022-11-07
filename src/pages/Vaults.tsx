@@ -74,6 +74,31 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     setModalState({ show: true, data: signatories });
   };
 
+  const calculateSignCount = (vault: VaultState) => {
+    const threshold = Number(vault.vault.threshold) * 100;
+    const signatoryThresholds = vault.signatories[1].map((data) => Number(data));
+
+    const orderedSignatoryThresholds = signatoryThresholds.sort((a, b) => a - b);
+
+    let currentThresholdCount = 0;
+    let calculatedThreshold = 0;
+    let i = 0;
+
+    while (i < signatoryThresholds.length) {
+      calculatedThreshold += orderedSignatoryThresholds[i];
+
+      if (calculatedThreshold >= threshold) {
+        currentThresholdCount = i + 1;
+        break;
+      } else {
+        i++;
+      }
+    }
+    console.log(calculatedThreshold);
+
+    return "Minimum Sign Count: " + currentThresholdCount;
+  };
+
   const renderModal = () => {
     if (modalState.data) {
       const signatoriesAddress = modalState.data[0];
@@ -143,6 +168,8 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                   <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
                   <Text>{calculateWaitingConfirmCount(item.signatories)}</Text>
+                  <br />
+                  <Text>{calculateSignCount(item)}</Text>
                 </StyledPanel>
               </VaultItem>
             );
