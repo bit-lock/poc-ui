@@ -26,7 +26,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
-  const [authorizedAddresses, setAuthorizedAddresses] = useState<AuthorizedAddresses[]>([]);
+  const [authorizedAddresses, setAuthorizedAddresses] = useState<string[]>([]);
 
   useEffect(() => {
     const web3Instance = new Web3Lib();
@@ -166,13 +166,9 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const addAuthorizedAddressButtonClick = () => {
     const clonedAuthorizedAddressList = [...authorizedAddresses];
 
-    const previousState = clonedAuthorizedAddressList.map((address: AuthorizedAddresses) => {
-      return { ...address };
-    });
+    clonedAuthorizedAddressList.push("");
 
-    previousState.push({ address: "" });
-
-    setAuthorizedAddresses(previousState);
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
   };
 
   const removeAuthorizedAddessButtonOnClick = (willRemovedIndex: number) => {

@@ -9,7 +9,6 @@ import TrashIcon from "@rsuite/icons/Trash";
 import EditIcon from "@rsuite/icons/Edit";
 import CheckIcon from "@rsuite/icons/Check";
 import CloseIcon from "@rsuite/icons/Close";
-import { AuthorizedAddresses } from "../lib/models/AuthorizedAddress";
 
 const timeRange: number[] = [...Array(30).keys()];
 
@@ -18,7 +17,7 @@ type Props = {
   signatories: SignatoryState[];
   threshold: number;
   degradingPeriods: DegradingPeriod[];
-  authorizedAddresses: AuthorizedAddresses[];
+  authorizedAddresses: string[];
   selectedValues?: { index: number; value: number };
   addNewSignatoryOnClick: () => void;
   formOnClick: () => void;
@@ -34,7 +33,7 @@ type Props = {
   degradingPeriodsChangeCallback: (index: number, e: any) => void;
   degradingPeriodValueChangeCallback: (index: number, e: any) => void;
   degradingPeriodSharedChangeCallback: (index: number, e: any) => void;
-  authorizedAddressesChangeCallback: (addresses: AuthorizedAddresses[]) => void;
+  authorizedAddressesChangeCallback: (addresses: string[]) => void;
   removeAuthorizedAddessButtonOnClick: (index: number) => void;
   onChangeSharedInputCallback: (index: number, e: string) => void;
 };
@@ -218,10 +217,10 @@ export const VaultForm: React.FC<Props> = ({
               <StyledInput
                 placeholder={"Authorized Address"}
                 margin="auto 1.9rem auto 1rem"
-                value={authorizedAddress.address}
+                value={authorizedAddress}
                 onChange={(value: string) => {
                   const cloned = [...authorizedAddresses];
-                  cloned[index].address = value;
+                  cloned[index] = value;
                   authorizedAddressesChangeCallback(cloned);
                 }}
               />

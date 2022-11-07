@@ -4,10 +4,10 @@ import { Loader } from "rsuite";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
-import { secondsForUnits } from "../helper";
+import { dateToEpochTimestamp, secondsForUnits } from "../helper";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { VaultForm } from "../components/VaultForm";
-import { AuthorizedAddresses } from "../lib/models/AuthorizedAddress";
+import { TimelockThreshold } from "../lib/models/TimelockThreshold";
 
 type Props = {
   account: string;
@@ -20,7 +20,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
-  const [authorizedAddresses, setAuthorizedAddresses] = useState<AuthorizedAddresses[]>([]);
+  const [authorizedAddresses, setAuthorizedAddresses] = useState<string[]>([]);
 
   // page loading state
   const [loading, setLoading] = useState<boolean>(false);
@@ -118,14 +118,8 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
   const addAuthorizedAddressButtonClick = () => {
     const clonedAuthorizedAddressList = [...authorizedAddresses];
-
-    const previousState = clonedAuthorizedAddressList.map((address: AuthorizedAddresses) => {
-      return { ...address };
-    });
-
-    previousState.push({ address: "" });
-
-    setAuthorizedAddresses(previousState);
+    clonedAuthorizedAddressList.push("");
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
   };
 
   const removeAuthorizedAddessButtonOnClick = (willRemovedIndex: number) => {
@@ -139,12 +133,29 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
-    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, [], []);
+
+    // const editedThreshold = threshold * 100;
+
+    // const date = new Date();
+
+    // const editedPeriods: TimelockThreshold[] = degradingPeriods.map((dp) => {
+    //   let timelock = 0;
+
+    //   if (dp.date.unit === "DAYS") {
+    //     timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value));
+    //   }
+
+    //   return {
+    //     timelock,
+    //     threshold: dp.shared,
+    //   };
+    // });
+
+    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, []);
     setLoading(false);
 
     navigate(ROUTE_PATH.VAULTS);
   };
-
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }
