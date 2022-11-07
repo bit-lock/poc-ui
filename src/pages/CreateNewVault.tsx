@@ -7,6 +7,7 @@ import { SignatoryState } from "../lib/models/SignatoryState";
 import { secondsForUnits } from "../helper";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { VaultForm } from "../components/VaultForm";
+import { AuthorizedAddresses } from "../lib/models/AuthorizedAddress";
 
 type Props = {
   account: string;
@@ -19,6 +20,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
+  const [authorizedAddresses, setAuthorizedAddresses] = useState<AuthorizedAddresses[]>([]);
 
   // page loading state
   const [loading, setLoading] = useState<boolean>(false);
@@ -114,6 +116,24 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     setSelectedValues(undefined);
   };
 
+  const addAuthorizedAddressButtonClick = () => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+
+    const previousState = clonedAuthorizedAddressList.map((address: AuthorizedAddresses) => {
+      return { ...address };
+    });
+
+    previousState.push({ address: "" });
+
+    setAuthorizedAddresses(previousState);
+  };
+
+  const removeAuthorizedAddessButtonOnClick = (willRemovedIndex: number) => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+    clonedAuthorizedAddressList.splice(willRemovedIndex, 1);
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
+  };
+
   const initializeVaultClick = async () => {
     setLoading(true);
     const web3Instance = new Web3Lib();
@@ -135,10 +155,12 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       signatories={signatories}
       threshold={threshold}
       degradingPeriods={degradingPeriods}
+      authorizedAddresses={authorizedAddresses}
       selectedValues={selectedValues}
       addNewSignatoryOnClick={addButtonClick}
       formOnClick={initializeVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
+      addAuthorizedAddressButtonClick={addAuthorizedAddressButtonClick}
       removeButtonOnClick={removeButtonClick}
       vaultNameChangeCallback={setVaultName}
       signatoriesChangeCallback={setSignatories}
@@ -146,6 +168,8 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       degradingPeriodsChangeCallback={changeDegradingPeriod}
       degradingPeriodValueChangeCallback={changeDegradingPeriodValue}
       degradingPeriodSharedChangeCallback={changeDegradingPeriodShared}
+      authorizedAddressesChangeCallback={setAuthorizedAddresses}
+      removeAuthorizedAddessButtonOnClick={removeAuthorizedAddessButtonOnClick}
       onChangeSharedInputCallback={onChangeSharedInput}
       selectedValuesChangeCallback={setSelectedValues}
       editButtonClick={editButtonClick}
