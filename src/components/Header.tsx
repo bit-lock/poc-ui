@@ -1,5 +1,6 @@
 import { Navbar, Nav } from "rsuite";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import VaultIcon from "../Svg/Icons/VaultIcon";
 
@@ -8,7 +9,7 @@ export const Header = () => {
 
   return (
     <Navbar>
-      <div style={{ display: "flex" }}>
+      <Container>
         <VaultIcon />
         <Navbar.Brand>BTC Vault</Navbar.Brand>
         <Nav>
@@ -17,7 +18,11 @@ export const Header = () => {
           <Nav.Item onClick={() => navigate(ROUTE_PATH.VAULTS)}>Vaults</Nav.Item>
           <Nav.Item onClick={() => navigate(ROUTE_PATH.VIEW_REQUESTS)}>View Requests</Nav.Item>
         </Nav>
-      </div>
+      </Container>
     </Navbar>
   );
 };
+
+const Container = styled.div`
+  display: flex;
+`;
