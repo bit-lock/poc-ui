@@ -101,10 +101,9 @@ export const VaultForm: React.FC<Props> = ({
                 </Whisper>
               </StyledInputGroup>
               <IconContainer>
-                <Input
+                <SharedInput
                   type="number"
                   disabled={index !== selectedValues?.index}
-                  style={{ width: "100px" }}
                   value={index !== selectedValues?.index ? Number(signatory.percent) : selectedValues?.value || ""}
                   onChange={(e: string) => {
                     onChangeSharedInputCallback(index, e);
@@ -261,6 +260,10 @@ const InputContainer = styled.div`
     -webkit-appearance: none;
     margin: 0;
   }
+`;
+
+const SharedInput = styled(Input)`
+  width: 100px;
 `;
 
 const Delete = styled(TrashIcon)`
