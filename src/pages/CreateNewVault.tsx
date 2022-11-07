@@ -4,9 +4,11 @@ import { Loader } from "rsuite";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
-import { secondsForUnits } from "../helper";
+import { dateToEpochTimestamp, secondsForUnits } from "../helper";
 import { DegradingPeriod } from "../lib/models/DegradingPeriod";
 import { VaultForm } from "../components/VaultForm";
+import { TimelockThreshold } from "../lib/models/TimelockThreshold";
+import { DATE_UNIT } from "../lib/enum/DATE_UNIT";
 
 type Props = {
   account: string;
@@ -19,6 +21,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
   const [threshold, setThreshold] = useState<number>(25);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
+  const [authorizedAddresses, setAuthorizedAddresses] = useState<string[]>([]);
 
   // page loading state
   const [loading, setLoading] = useState<boolean>(false);
@@ -114,17 +117,66 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     setSelectedValues(undefined);
   };
 
+  const addAuthorizedAddressButtonClick = () => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+    clonedAuthorizedAddressList.push("");
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
+  };
+
+  const removeAuthorizedAddessButtonOnClick = (willRemovedIndex: number) => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+    clonedAuthorizedAddressList.splice(willRemovedIndex, 1);
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
+  };
+
   const initializeVaultClick = async () => {
     setLoading(true);
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
-    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares);
+
+    // const editedThreshold = threshold * 100;
+
+    const date = new Date();
+
+    const editedPeriods: TimelockThreshold[] = degradingPeriods.map((dp) => {
+      let timelock = 0;
+
+      switch (dp.date.unit) {
+        case DATE_UNIT.DAYS:
+          timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value));
+          break;
+
+        case DATE_UNIT.WEEKS:
+          timelock = dateToEpochTimestamp(date.setDate(date.getDate() + dp.date.value * 7));
+          break;
+
+        case DATE_UNIT.MONTS:
+          timelock = dateToEpochTimestamp(date.setMonth(date.getMonth() + dp.date.value));
+          break;
+
+        case DATE_UNIT.YEARS:
+          timelock = dateToEpochTimestamp(date.setFullYear(date.getFullYear() + dp.date.value));
+          break;
+
+        default:
+          break;
+      }
+
+      // Math.floor is temp for decimal bugs.
+      return {
+        timelock: timelock,
+        threshold: dp.shared * 100,
+      };
+    });
+
+    console.log(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
+
+    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
     setLoading(false);
 
     navigate(ROUTE_PATH.VAULTS);
   };
-
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }
@@ -135,10 +187,12 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       signatories={signatories}
       threshold={threshold}
       degradingPeriods={degradingPeriods}
+      authorizedAddresses={authorizedAddresses}
       selectedValues={selectedValues}
       addNewSignatoryOnClick={addButtonClick}
       formOnClick={initializeVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
+      addAuthorizedAddressButtonClick={addAuthorizedAddressButtonClick}
       removeButtonOnClick={removeButtonClick}
       vaultNameChangeCallback={setVaultName}
       signatoriesChangeCallback={setSignatories}
@@ -146,6 +200,8 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       degradingPeriodsChangeCallback={changeDegradingPeriod}
       degradingPeriodValueChangeCallback={changeDegradingPeriodValue}
       degradingPeriodSharedChangeCallback={changeDegradingPeriodShared}
+      authorizedAddressesChangeCallback={setAuthorizedAddresses}
+      removeAuthorizedAddessButtonOnClick={removeAuthorizedAddessButtonOnClick}
       onChangeSharedInputCallback={onChangeSharedInput}
       selectedValuesChangeCallback={setSelectedValues}
       editButtonClick={editButtonClick}

@@ -25,6 +25,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [degradingPeriods, setDegradingPeriods] = useState<DegradingPeriod[]>([]);
   const [selectedValues, setSelectedValues] = useState<{ index: number; value: number }>();
+  const [authorizedAddresses, setAuthorizedAddresses] = useState<string[]>([]);
 
   useEffect(() => {
     const web3Instance = new Web3Lib();
@@ -161,6 +162,20 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     setDegradingPeriods(clonedDegradingPeriods);
   };
 
+  const addAuthorizedAddressButtonClick = () => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+
+    clonedAuthorizedAddressList.push("");
+
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
+  };
+
+  const removeAuthorizedAddessButtonOnClick = (willRemovedIndex: number) => {
+    const clonedAuthorizedAddressList = [...authorizedAddresses];
+    clonedAuthorizedAddressList.splice(willRemovedIndex, 1);
+    setAuthorizedAddresses(clonedAuthorizedAddressList);
+  };
+
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }
@@ -171,10 +186,12 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       signatories={signatories}
       threshold={threshold}
       degradingPeriods={degradingPeriods}
+      authorizedAddresses={authorizedAddresses}
       selectedValues={selectedValues}
       addNewSignatoryOnClick={addButtonClick}
       formOnClick={editVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
+      addAuthorizedAddressButtonClick={addAuthorizedAddressButtonClick}
       removeButtonOnClick={removeButtonClick}
       vaultNameChangeCallback={setVaultName}
       signatoriesChangeCallback={setSignatories}
@@ -182,6 +199,8 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       degradingPeriodsChangeCallback={changeDegradingPeriod}
       degradingPeriodValueChangeCallback={changeDegradingPeriodValue}
       degradingPeriodSharedChangeCallback={changeDegradingPeriodShared}
+      authorizedAddressesChangeCallback={setAuthorizedAddresses}
+      removeAuthorizedAddessButtonOnClick={removeAuthorizedAddessButtonOnClick}
       onChangeSharedInputCallback={onChangeSharedInput}
       selectedValuesChangeCallback={setSelectedValues}
       editButtonClick={editButtonClick}

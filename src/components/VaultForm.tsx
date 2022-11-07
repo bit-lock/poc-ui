@@ -17,11 +17,13 @@ type Props = {
   signatories: SignatoryState[];
   threshold: number;
   degradingPeriods: DegradingPeriod[];
+  authorizedAddresses: string[];
   selectedValues?: { index: number; value: number };
   addNewSignatoryOnClick: () => void;
   formOnClick: () => void;
   selectedValuesChangeCallback: (value: any) => void;
   addDegradingButtonClick: () => void;
+  addAuthorizedAddressButtonClick: () => void;
   editButtonClick: (index: number, value: number) => void;
   saveInputValue: (index: number, value: number) => void;
   removeButtonOnClick: (index: number, percent: number) => void;
@@ -31,6 +33,8 @@ type Props = {
   degradingPeriodsChangeCallback: (index: number, e: any) => void;
   degradingPeriodValueChangeCallback: (index: number, e: any) => void;
   degradingPeriodSharedChangeCallback: (index: number, e: any) => void;
+  authorizedAddressesChangeCallback: (addresses: string[]) => void;
+  removeAuthorizedAddessButtonOnClick: (index: number) => void;
   onChangeSharedInputCallback: (index: number, e: string) => void;
 };
 
@@ -39,6 +43,7 @@ export const VaultForm: React.FC<Props> = ({
   signatories,
   threshold,
   degradingPeriods,
+  authorizedAddresses,
   selectedValues,
   addNewSignatoryOnClick,
   formOnClick,
@@ -46,6 +51,7 @@ export const VaultForm: React.FC<Props> = ({
   saveInputValue,
   selectedValuesChangeCallback,
   addDegradingButtonClick,
+  addAuthorizedAddressButtonClick,
   removeButtonOnClick,
   vaultNameChangeCallback,
   signatoriesChangeCallback,
@@ -53,6 +59,8 @@ export const VaultForm: React.FC<Props> = ({
   degradingPeriodsChangeCallback,
   degradingPeriodValueChangeCallback,
   degradingPeriodSharedChangeCallback,
+  authorizedAddressesChangeCallback,
+  removeAuthorizedAddessButtonOnClick,
   onChangeSharedInputCallback,
 }) => {
   const calculateMaxValue = (index: number) => {
@@ -101,10 +109,9 @@ export const VaultForm: React.FC<Props> = ({
                 </Whisper>
               </StyledInputGroup>
               <IconContainer>
-                <Input
+                <SharedInput
                   type="number"
                   disabled={index !== selectedValues?.index}
-                  style={{ width: "100px" }}
                   value={index !== selectedValues?.index ? Number(signatory.percent) : selectedValues?.value || ""}
                   onChange={(e: string) => {
                     onChangeSharedInputCallback(index, e);
@@ -152,7 +159,7 @@ export const VaultForm: React.FC<Props> = ({
           progress
           step={0.01}
           defaultValue={25.0}
-          margin="auto auto 1rem 5.4rem"
+          margin="auto auto 1rem 1.3rem"
           onChange={(value) => {
             thresholdChangeCallback(value);
           }}
@@ -202,6 +209,28 @@ export const VaultForm: React.FC<Props> = ({
         Add Degrading Period
       </CustomAddButton>
 
+      {authorizedAddresses.length > 0 &&
+        authorizedAddresses.map((authorizedAddress, index: number) => {
+          return (
+            <InputContainer key={index}>
+              <StyledText>Authorized Address {index + 1}</StyledText>
+              <StyledInput
+                placeholder={"Authorized Address"}
+                margin="auto 1.9rem auto 1rem"
+                value={authorizedAddress}
+                onChange={(value: string) => {
+                  const cloned = [...authorizedAddresses];
+                  cloned[index] = value;
+                  authorizedAddressesChangeCallback(cloned);
+                }}
+              />
+              <Delete onClick={() => removeAuthorizedAddessButtonOnClick(index)} />
+            </InputContainer>
+          );
+        })}
+
+      <CustomAddButton onClick={addAuthorizedAddressButtonClick}>Add Authorized Address</CustomAddButton>
+
       <CustomAddButton appearance="primary" onClick={formOnClick} disabled={vaultName === "" || threshold === 0}>
         Initialize Vault
       </CustomAddButton>
@@ -230,14 +259,14 @@ const Wrapper = styled.section`
   transform: translate(-50%, -50%);
 `;
 
-const StyledInput = styled(Input)`
-  width: 65%;
-  margin: auto 3% auto 85px;
+const StyledInput = styled(Input)<StyleProps>`
+  width: 35.625rem;
+  margin: ${(props) => (props.margin ? props.margin : "auto 9.4rem 1rem 1rem")};
   align-self: end;
 `;
 const StyledInputGroup = styled(InputGroup)`
-  width: 65%;
-  margin: auto 3% auto 85px;
+  width: 36.625rem;
+  margin: auto 3% auto 1.2rem;
   align-self: end;
 `;
 
@@ -250,6 +279,9 @@ const StyledSlider = styled(Slider)<StyleProps>`
 const StyledText = styled.p`
   font-size: 1rem;
   color: #f7931a;
+  min-width: 7.5rem;
+  max-width: 7.5rem;
+  margin-right: 1rem;
 `;
 
 const InputContainer = styled.div`
@@ -261,6 +293,10 @@ const InputContainer = styled.div`
     -webkit-appearance: none;
     margin: 0;
   }
+`;
+
+const SharedInput = styled(Input)`
+  width: 95px;
 `;
 
 const Delete = styled(TrashIcon)`
@@ -298,7 +334,7 @@ const Close = styled(CloseIcon)`
 const IconContainer = styled.div`
   display: flex;
   margin-left: 0;
-  min-width: 156px;
+  min-width: 100px;
 `;
 
 const EditContainer = styled.div`

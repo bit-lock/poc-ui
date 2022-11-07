@@ -16,3 +16,7 @@ export const secondsForUnits = [
     unit: "YEARS",
   },
 ];
+
+export const dateToEpochTimestamp = (date: number) => {
+  return Math.floor(date / 1000);
+};
