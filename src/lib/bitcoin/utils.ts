@@ -82,6 +82,7 @@ export const calculateTxFees = async (utxos: UTXO[], minimumSignatoryCount: numb
 };
 
 export const createDestinationPubkey = (destinationAddress: string) => {
+  if (destinationAddress === "") return { errorMessage: "", scriptPubkey: "" };
   const res = segwit_addr_ecc.check(destinationAddress, ["bc", "tb"]);
 
   let scriptPubkey = "";

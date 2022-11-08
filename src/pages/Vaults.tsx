@@ -24,7 +24,14 @@ export const Vaults: React.FC<Props> = ({ account }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalState, setModalState] = useState<{ show: boolean; data?: Signatories }>({ show: false });
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
-  const [withdrawModalState, setWithdrawModalState] = useState<{ show: boolean; balance?: number; address?: string; scriptPubkey?: string; errorMessage?: string }>({
+  const [withdrawModalState, setWithdrawModalState] = useState<{
+    show: boolean;
+    balance?: number;
+    address?: string;
+    scriptPubkey?: string;
+    errorMessage?: string;
+    amount?: number;
+  }>({
     show: false,
   });
 
@@ -217,6 +224,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
             <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.balance}₿ </Header>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Input
+                style={{ marginRight: "0.4rem" }}
                 placeholder={"Bitcoin Address"}
                 value={withdrawModalState.address}
                 onChange={(value) => {
@@ -231,6 +239,23 @@ export const Vaults: React.FC<Props> = ({ account }) => {
               </Whisper>
             </div>
             {withdrawModalState.errorMessage && <Text style={{ color: "red" }}>{withdrawModalState.errorMessage}</Text>}
+            <Input
+              style={{ marginTop: "1rem" }}
+              type="number"
+              placeholder="Amount (decimal)"
+              value={withdrawModalState.amount}
+              onChange={(e) => {
+                setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
+              }}
+            />
+            <Button
+              onClick={() => {
+                console.log("widthdraw click");
+              }}
+              style={{ padding: "0.5rem", marginTop: "1rem" }}
+            >
+              Withdraw ₿
+            </Button>
           </Modal.Body>
         </Modal>
       );
