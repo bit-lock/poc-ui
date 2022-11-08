@@ -1,5 +1,5 @@
 import { ScriptWiz, VM, VM_NETWORK, VM_NETWORK_VERSION } from "@script-wiz/lib";
-import { address, taproot, TAPROOT_VERSION } from "@script-wiz/lib-core";
+import { taproot, TAPROOT_VERSION } from "@script-wiz/lib-core";
 import WizData from "@script-wiz/wiz-data";
 import { Signatories } from "../models/Signatories";
 
@@ -17,7 +17,7 @@ export const bitcoinTemplateMaker = (unlocking_threshold: number, signatories: S
 
   const result = taproot.tapRoot(WizData.fromHex(innerkey), [WizData.fromHex(script.substring(2))], TAPROOT_VERSION.BITCOIN);
 
-  console.log(result.address.testnet);
+  return { script, address: result.address.testnet };
 };
 
 const noDegradeHeader = (scriptWizard: ScriptWiz, unlocking_threshold: number) => {
