@@ -6,8 +6,10 @@ export type VaultState = {
   isMyOwner: boolean;
   signatories: Signatories;
   vault: Vault;
+  minimumSignatoryCount: number;
   bitcoin?: {
     address: string;
     balance: number;
+    fee: number;
   };
 };
