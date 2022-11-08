@@ -2,10 +2,10 @@
 import { UTXO } from "../models/UTXO";
 import axios from "axios";
 import { RecommendedFee } from "../models/RecommendedFee";
-import WizData from "@script-wiz/wiz-data";
+import WizData, { hexLE } from "@script-wiz/wiz-data";
 import { esploraClient, init, TxDetail } from "@bitmatrix/esplora-api-client";
 import segwit_addr_ecc from "./bech32/segwit_addr_ecc";
-import { utils } from "@script-wiz/lib-core";
+import { utils, arithmetics64, convertion, crypto } from "@script-wiz/lib-core";
 import { decode } from "bs58";
 
 const recomommendedFee = async () => {
@@ -56,6 +56,9 @@ export const fetchUtxos = async (address: string): Promise<UTXO[]> => {
         }
       });
 
+      const myFinalUtxos = myUtxoSets.map((value) => crypto.sha256v2(WizData.fromHex(value.txId + convertion.convert32(WizData.fromNumber(value.vout)).hex)));
+      const sortedUtxos = myFinalUtxos.sort((a, b) => lexicographical(a, b));
+      console.log(sortedUtxos);
       return myUtxoSets;
     });
   }
@@ -101,4 +104,24 @@ export const createDestinationPubkey = (destinationAddress: string) => {
   }
 
   return scriptPubkey;
+};
+
+export const bitcoinBalanceCalculation = (utxos: UTXO[]) => {
+  if (utxos.length > 0) {
+    const balances = utxos.map((utxo) => utxo.value);
+
+    const initialValue = 0;
+    return balances.reduce((previousValue, currentValue) => previousValue + currentValue, initialValue);
+  }
+
+  return 0;
+};
+
+export const lexicographical = (aTx: string, bTx: string): number => {
+  if (aTx.length !== 64 || bTx.length !== 64) throw new Error("Lexicographical error. Wrong length tx ids: " + aTx + "," + bTx);
+
+  const a = hexLE(aTx.substring(48));
+  const b = hexLE(bTx.substring(48));
+
+  return arithmetics64.greaterThan64(WizData.fromHex(a), WizData.fromHex(b)).number === 1 ? 1 : -1;
 };

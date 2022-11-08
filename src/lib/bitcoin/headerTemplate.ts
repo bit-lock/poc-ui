@@ -21,7 +21,6 @@ export const bitcoinTemplateMaker = (unlocking_threshold: number, signatories: S
 };
 
 const noDegradeHeader = (scriptWizard: ScriptWiz, unlocking_threshold: number) => {
-  console.log(unlocking_threshold);
   scriptWizard.parseOpcode("OP_DUP", false, "");
   scriptWizard.parseOpcode("OP_1", false, "");
   scriptWizard.parseOpcode("OP_EQUAL", false, "");

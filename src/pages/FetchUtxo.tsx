@@ -2,9 +2,7 @@
 import React, { useState } from "react";
 import { Button, Input, List, Loader } from "rsuite";
 import styled from "styled-components";
-import segwit_addr_ecc from "../lib/bitcoin/bech32/segwit_addr_ecc";
-import { utils } from "@script-wiz/lib-core";
-import { decode } from "bs58";
+
 import { calculateTxFees, fetchUtxos } from "../lib/bitcoin/utils";
 import { UTXO } from "../lib/models/UTXO";
 
@@ -22,35 +20,6 @@ export const FetchUtxo = () => {
     setUtxoSets(data);
 
     setLoader(false);
-  };
-
-  const createDestinationPubkey = () => {
-    const res = segwit_addr_ecc.check(destinationAddress, ["bc", "tb"]);
-
-    let scriptPubkey = "";
-
-    if (res.program) {
-      const result = res.program
-        .map((byte) => {
-          return ("0" + (byte & 0xff).toString(16)).slice(-2);
-        })
-        .join("");
-
-      const versionPrefix = res.version === 1 ? "51" : "00";
-      scriptPubkey = versionPrefix + utils.compactSizeVarIntData(result);
-    } else {
-      const data = decode(destinationAddress);
-      console.log(data);
-      const editedData = data.slice(1, 21);
-
-      if (data[0] === 111 || data[0] === 0) {
-        scriptPubkey = "76a914" + Buffer.from(editedData).toString("hex") + "88ac";
-      } else if (data[0] === 196 || data[0] === 5) {
-        scriptPubkey = "a914" + Buffer.from(editedData).toString("hex") + "87";
-      }
-    }
-
-    return scriptPubkey;
   };
 
   const test = async () => {
