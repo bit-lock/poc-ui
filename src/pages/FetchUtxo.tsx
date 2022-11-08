@@ -70,6 +70,13 @@ export const FetchUtxo = () => {
     }
   };
 
+  const recomommendedFee = async () => {
+    return fetch("https://mempool.space/api/v1/fees/recommended").then(async (data) => {
+      const x = await data.json();
+      return x;
+    });
+  };
+
   const createDestinationPubkey = () => {
     const res = segwit_addr_ecc.check(destinationAddress, ["bc", "tb"]);
 

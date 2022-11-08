@@ -94,7 +94,6 @@ export const Vaults: React.FC<Props> = ({ account }) => {
         i++;
       }
     }
-    console.log(calculatedThreshold);
 
     return "Minimum Sign Count: " + currentThresholdCount;
   };
