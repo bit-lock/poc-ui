@@ -102,3 +102,14 @@ export const createDestinationPubkey = (destinationAddress: string) => {
 
   return scriptPubkey;
 };
+
+export const bitcoinBalanceCalculation = (utxos: UTXO[]) => {
+  if (utxos.length > 0) {
+    const balances = utxos.map((utxo) => utxo.value);
+
+    const initialValue = 0;
+    return balances.reduce((previousValue, currentValue) => previousValue + currentValue, initialValue);
+  }
+
+  return 0;
+};
