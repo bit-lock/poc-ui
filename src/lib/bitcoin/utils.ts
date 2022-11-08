@@ -1,8 +1,12 @@
+/* eslint-disable array-callback-return */
 import { UTXO } from "../models/UTXO";
 import axios from "axios";
 import { RecommendedFee } from "../models/RecommendedFee";
 import WizData from "@script-wiz/wiz-data";
 import { esploraClient, init, TxDetail } from "@bitmatrix/esplora-api-client";
+import segwit_addr_ecc from "./bech32/segwit_addr_ecc";
+import { utils } from "@script-wiz/lib-core";
+import { decode } from "bs58";
 
 const recomommendedFee = async () => {
   return axios.get<RecommendedFee>("https://mempool.space/api/v1/fees/recommended").then((response) => {
@@ -68,4 +72,33 @@ export const calculateTxFees = async (utxos: UTXO[], minimumSignatoryCount: numb
   const formula = (40 * totalUtxoCount + 16 * totalUtxoCount * minimumSignatoryCount + 10 + 8 + (templateByteSize * totalUtxoCount) / 4 + 87) * fee.fastestFee;
 
   return Math.round(formula);
+};
+
+export const createDestinationPubkey = (destinationAddress: string) => {
+  const res = segwit_addr_ecc.check(destinationAddress, ["bc", "tb"]);
+
+  let scriptPubkey = "";
+
+  if (res.program) {
+    const result = res.program
+      .map((byte) => {
+        return ("0" + (byte & 0xff).toString(16)).slice(-2);
+      })
+      .join("");
+
+    const versionPrefix = res.version === 1 ? "51" : "00";
+    scriptPubkey = versionPrefix + utils.compactSizeVarIntData(result);
+  } else {
+    const data = decode(destinationAddress);
+    console.log(data);
+    const editedData = data.slice(1, 21);
+
+    if (data[0] === 111 || data[0] === 0) {
+      scriptPubkey = "76a914" + Buffer.from(editedData).toString("hex") + "88ac";
+    } else if (data[0] === 196 || data[0] === 5) {
+      scriptPubkey = "a914" + Buffer.from(editedData).toString("hex") + "87";
+    }
+  }
+
+  return scriptPubkey;
 };
