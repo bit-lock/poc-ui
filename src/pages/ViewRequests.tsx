@@ -105,17 +105,17 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
             <Panel>
               {approveRequestList.length !== 0 && (
                 <>
-                  <Text>Vault Approve Requests</Text>
+                  <Text fontWeight="600">Vault Approve Requests</Text>
                   <RequestList>
                     {approveRequestList.map((data) => {
                       return (
                         <RequestItem key={data.id}>
                           <Text>{data.vault.name}</Text>
                           <ButtonGroup>
-                            <StyledButton appearance="link" active color="blue" onClick={() => approveSignatory(data.id)}>
+                            <StyledButton appearance="link" active color="#169de0" onClick={() => approveSignatory(data.id)}>
                               Accept
                             </StyledButton>
-                            <StyledButton appearance="link" active color="red">
+                            <StyledButton appearance="link" active color="#f44336">
                               Decline
                             </StyledButton>
                           </ButtonGroup>
@@ -158,6 +158,7 @@ interface StyleProps {
   fontSize?: string;
   alignSelf?: string;
   color?: string;
+  fontWeight?: string;
 }
 
 const StyledBox = styled(FlexboxGrid)`
@@ -169,15 +170,15 @@ const StyledBox = styled(FlexboxGrid)`
 
 const Text = styled.span<StyleProps>`
   font-size: ${(props) => (props.fontSize ? props.fontSize : "16px")};
-  font-weight: 600;
-  color: #6c6b6b;
+  font-weight: ${(props) => (props.fontWeight ? props.fontWeight : "500")};
+  color: #a4a9b3;
   align-self: center;
 `;
 
 const RequestItem = styled.div`
   border: none;
   width: 100%;
-  background: #d0cece;
+  background: #292d33;
   height: 50px;
   display: flex;
   align-items: center;
@@ -188,12 +189,12 @@ const RequestItem = styled.div`
 
 const StyledBoxItem = styled(FlexboxGrid.Item)`
   margin: auto;
-  background: white;
   border-radius: 8px;
   min-height: 65vh;
   max-height: 65vh;
   width: 60%;
   overflow-y: scroll;
+  border: 1px solid #292d33;
 `;
 
 const ButtonGroup = styled.div``;
