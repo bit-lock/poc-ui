@@ -39,9 +39,9 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
         const currentSignatories = signatories[z][0].map((data: string) => data.toLowerCase());
 
         if (currentVault.initiator.toLowerCase() === myCurrentAdress) {
-          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: true });
+          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: true, minimumSignatoryCount: 0 });
         } else if (currentSignatories.includes(myCurrentAdress)) {
-          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: false });
+          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: false, minimumSignatoryCount: 0 });
         }
       }
 
