@@ -5,12 +5,15 @@ import { useNavigate } from "react-router-dom";
 import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
-import { bitcoinBalanceCalculation, calculateTxFees, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
 import { Vault } from "../lib/models/Vault";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
+import { utils } from "@script-wiz/lib-core";
+
+const BITCOIN_PER_SATOSHI = 100000000;
 
 type Props = {
   account: string;
@@ -26,11 +29,15 @@ export const Vaults: React.FC<Props> = ({ account }) => {
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
   const [withdrawModalState, setWithdrawModalState] = useState<{
     show: boolean;
-    balance?: number;
     address?: string;
     scriptPubkey?: string;
     errorMessage?: string;
     amount?: number;
+    bitcoin?: {
+      address: string;
+      balance: number;
+      fee: number;
+    };
   }>({
     show: false,
   });
@@ -176,6 +183,21 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     setWithdrawModalState({ ...withdrawModalState, address, scriptPubkey, errorMessage });
   };
 
+  const withdrawClick = () => {
+    const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
+    const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
+    const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
+    let vaultHasChange = true;
+
+    if (feeGap < 1000) {
+      vaultHasChange = false;
+    }
+
+    console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
+    console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);
+    console.log("Withdraw input amount", amountSats);
+  };
+
   const renderDepositModal = () => {
     if (depositModalState.data) {
       return (
@@ -221,7 +243,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
             <ModalTitle>Withdraw Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.balance}₿ </Header>
+            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿ </Header>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Input
                 style={{ marginRight: "0.4rem" }}
@@ -248,12 +270,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                 setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
               }}
             />
-            <Button
-              onClick={() => {
-                console.log("widthdraw click");
-              }}
-              style={{ padding: "0.5rem", marginTop: "1rem" }}
-            >
+            <Button onClick={withdrawClick} style={{ padding: "0.5rem", marginTop: "1rem" }}>
               Withdraw ₿
             </Button>
           </Modal.Body>
@@ -301,7 +318,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                         </Button>
                         <Button
                           onClick={() => {
-                            setWithdrawModalState({ show: true, balance: item.bitcoin?.balance });
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                           }}
                           style={{ marginLeft: "0.5rem" }}
                         >
