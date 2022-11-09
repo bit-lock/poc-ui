@@ -66,6 +66,8 @@ export const calculateSighashPreimage = (utxoSet: UTXO[], feeGap: number, vaultA
   });
 
   console.log("sighashPreimage", sighashPreimage);
+
+  return sighashPreimage;
 };
 
 export const calculatePrevouts = (utxoSet: UTXO[]) => {
@@ -137,4 +139,12 @@ export const calculateShaOutputs = (feeGap: number, hasChange: boolean, vaultScr
   console.log("line 100 : ", outputs);
 
   return crypto.sha256(WizData.fromHex(outputs)).toString();
+};
+
+export const signPreimages = (privateKey: string, preImages: string[]) => {
+  const signs = preImages.map((preImage) => {
+    return crypto.schnorrSign(WizData.fromHex(preImage), WizData.fromHex(privateKey)).sign.hex;
+  });
+
+  return signs;
 };

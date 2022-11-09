@@ -12,14 +12,16 @@ import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
+import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
 
 const BITCOIN_PER_SATOSHI = 100000000;
 
 type Props = {
   account: string;
+  privateKey: string;
 };
 
-export const Vaults: React.FC<Props> = ({ account }) => {
+export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const navigate = useNavigate();
 
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
@@ -183,15 +185,17 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     setWithdrawModalState({ ...withdrawModalState, address, scriptPubkey, errorMessage });
   };
 
-  const withdrawClick = () => {
-    const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
+  const withdrawClick = async () => {
+    // const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
     const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
-    const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
-    let vaultHasChange = true;
+    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
 
-    if (feeGap < 1000) {
-      vaultHasChange = false;
-    }
+    // temp
+    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
+
+    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
+
+    // console.log(signPreimages(privateKey, preimages));
 
     console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
     console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);

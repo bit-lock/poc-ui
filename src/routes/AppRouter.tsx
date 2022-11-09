@@ -81,7 +81,7 @@ export const AppRouter = (): JSX.Element => {
         },
         {
           path: ROUTE_PATH.VAULTS,
-          element: <Vaults account={account} />,
+          element: <Vaults account={account} privateKey={privateKey || ""} />,
         },
         {
           path: ROUTE_PATH.CREATE_NEW_VAULT,
