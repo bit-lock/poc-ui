@@ -101,6 +101,7 @@ export const VaultForm: React.FC<Props> = ({
                     clonedSignatories[index].address = value.replace(/\s/g, "");
                     signatoriesChangeCallback(clonedSignatories);
                   }}
+                  disabled={index === 0}
                 />
                 <Whisper placement="top" trigger="click" speaker={<Tooltip>ETH Address</Tooltip>}>
                   <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatory.address || "")}>
