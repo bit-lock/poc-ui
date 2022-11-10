@@ -24,6 +24,8 @@ type Props = {
 export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const navigate = useNavigate();
 
+  const [time, setTime] = useState(Date.now());
+
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -43,6 +45,13 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   }>({
     show: false,
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(Date.now()), 6000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -103,7 +112,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     };
 
     init();
-  }, [account]);
+  }, [account, time]);
 
   const calculateWaitingConfirmCount = (signatories: Signatories) => {
     const currentData: string[] = signatories[2];
@@ -117,9 +126,8 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     return "Confirmation Count : " + waitingConfirmationCount + " / " + confimationCount;
   };
 
-  // const handleClose = () => setModalState({ show: false });
-
-  const handleOpen = (signatories: Signatories) => {
+  const handleOpen = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, signatories: Signatories) => {
+    event.stopPropagation();
     setModalState({ show: true, data: signatories });
   };
 
@@ -147,37 +155,37 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     return currentThresholdCount;
   };
 
-  // const renderModal = () => {
-  //   if (modalState.data) {
-  //     const signatoriesAddress = modalState.data[0];
-  //     const percent = modalState.data[1];
-  //     const confirmation = modalState.data[2];
+  const renderSignatoryDetailModal = () => {
+    if (modalState.data) {
+      const signatoriesAddress = modalState.data[0];
+      const percent = modalState.data[1];
+      const confirmation = modalState.data[2];
 
-  //     return (
-  //       <Modal size="sm" open={modalState.show} onClose={handleClose}>
-  //         <Modal.Header>
-  //           <ModalTitle>Signatories</ModalTitle>
-  //           {signatoriesAddress.map((item: string, index: number) => {
-  //             return (
-  //               <div key={index}>
-  //                 <br />
-  //                 <Text fontWeight={700}>Signatory {index + 1}</Text>
-  //                 <br />
-  //                 <Text>Address: {item}</Text>
-  //                 <br />
-  //                 <Text>Shared: {Number(percent[index]) / 100}%</Text>
-  //                 <br />
-  //                 {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
-  //                 <br />
-  //               </div>
-  //             );
-  //           })}
-  //         </Modal.Header>
-  //         <Modal.Body></Modal.Body>
-  //       </Modal>
-  //     );
-  //   }
-  // };
+      return (
+        <Modal size="sm" open={modalState.show} onClose={() => setModalState({ show: false })}>
+          <Modal.Header>
+            <ModalTitle>Signatories</ModalTitle>
+            {signatoriesAddress.map((item: string, index: number) => {
+              return (
+                <div key={index}>
+                  <br />
+                  <Text fontWeight={700}>Signatory {index + 1}</Text>
+                  <br />
+                  <Text>Address: {item}</Text>
+                  <br />
+                  <Text>Shared: {Number(percent[index]) / 100}%</Text>
+                  <br />
+                  {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
+                  <br />
+                </div>
+              );
+            })}
+          </Modal.Header>
+          <Modal.Body></Modal.Body>
+        </Modal>
+      );
+    }
+  };
 
   const destinationAddressOnChange = (address: string) => {
     const { scriptPubkey, errorMessage } = createDestinationPubkey(address);
@@ -202,6 +210,15 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     console.log("Withdraw input amount", amountSats);
   };
 
+  const allButtonClick = () => {
+    const vaultBalance = withdrawModalState.bitcoin?.balance || 0;
+    const currentFee = (withdrawModalState.bitcoin?.fee || 0) / BITCOIN_PER_SATOSHI;
+
+    let allAmount = vaultBalance - currentFee;
+    if (allAmount < 0) allAmount = 0;
+    setWithdrawModalState({ ...withdrawModalState, amount: allAmount });
+  };
+
   const renderDepositModal = () => {
     if (depositModalState.data) {
       return (
@@ -216,17 +233,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             <ModalTitle>Deposit Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%", marginBottom: "1rem" }}>
+            <QRContainer>
               <QRCode size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} value={depositModalState.data} viewBox={`0 0 256 256`} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            </QRContainer>
+            <StyledInputGroup>
               <Input value={depositModalState.data} />
               <Whisper placement="top" trigger="click" speaker={<Tooltip>BTC Address</Tooltip>}>
                 <InputGroup.Button onClick={() => navigator.clipboard.writeText(depositModalState.data || "")}>
                   <CopyIcon width="1rem" height="1rem" />
                 </InputGroup.Button>
               </Whisper>
-            </div>
+            </StyledInputGroup>
           </Modal.Body>
         </Modal>
       );
@@ -247,12 +264,13 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             <ModalTitle>Withdraw Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿ </Header>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Text padding="0.3rem" display="block">
+              Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿{" "}
+            </Text>
+            <StyledInputGroup>
               <Input
-                style={{ marginRight: "0.4rem" }}
                 placeholder={"Bitcoin Address"}
-                value={withdrawModalState.address}
+                value={withdrawModalState.address || ""}
                 onChange={(value) => {
                   destinationAddressOnChange(value);
                 }}
@@ -263,20 +281,26 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                   <CopyIcon width="1rem" height="1rem" />
                 </InputGroup.Button>
               </Whisper>
-            </div>
-            {withdrawModalState.errorMessage && <Text style={{ color: "red" }}>{withdrawModalState.errorMessage}</Text>}
-            <Input
-              style={{ marginTop: "1rem" }}
-              type="number"
-              placeholder="Amount (decimal)"
-              value={withdrawModalState.amount}
-              onChange={(e) => {
-                setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
-              }}
-            />
-            <Button onClick={withdrawClick} style={{ padding: "0.5rem", marginTop: "1rem" }}>
+            </StyledInputGroup>
+            {withdrawModalState.errorMessage && <Text color="red">{withdrawModalState.errorMessage}</Text>}
+            <AmountInputContainer>
+              <Input
+                type="number"
+                placeholder="Amount (decimal)"
+                value={withdrawModalState.amount || ""}
+                onChange={(e: string) => {
+                  setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
+                }}
+              />
+            </AmountInputContainer>
+
+            <StyledButton onClick={allButtonClick} padding="0.5rem" margin="1rem 1rem 0 0rem">
+              All ₿
+            </StyledButton>
+
+            <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0">
               Withdraw ₿
-            </Button>
+            </StyledButton>
           </Modal.Body>
         </Modal>
       );
@@ -304,7 +328,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
         {vaultList.map((item) => {
           if (item.isMyOwner) {
             return (
-              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
+              <VaultItem key={item.id} onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => handleOpen(e, item.signatories)}>
                 <StyledPanel bordered>
                   <Header>
                     <Text fontSize="0.9rem" fontWeight={700}>
@@ -314,20 +338,22 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                     {item.vault.status === "0x01" && (
                       <div>
                         <Button
-                          onClick={() => {
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
                             setDepositModalState({ show: true, data: item.bitcoin?.address });
                           }}
                         >
                           Deposit ₿
                         </Button>
-                        <Button
-                          onClick={() => {
+                        <StyledButton
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
                             setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                           }}
-                          style={{ marginLeft: "0.5rem" }}
+                          margin="0 0 0 0.5rem"
                         >
                           Withdraw ₿
-                        </Button>
+                        </StyledButton>
                       </div>
                     )}
                   </Header>
@@ -348,7 +374,9 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <br />
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
-                      <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                      <>
+                        <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                      </>
                     </>
                   )}
                 </StyledPanel>
@@ -365,27 +393,34 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
         {vaultList.map((item) => {
           if (!item.isMyOwner) {
             return (
-              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
-                <StyledPanel bordered header={item.vault.name}>
-                  {item.vault.status === "0x01" && (
-                    <div>
-                      <Button
-                        onClick={() => {
-                          setDepositModalState({ show: true, data: item.bitcoin?.address });
-                        }}
-                      >
-                        Deposit ₿
-                      </Button>
-                      <Button
-                        onClick={() => {
-                          setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
-                        }}
-                        style={{ marginLeft: "0.5rem" }}
-                      >
-                        Withdraw ₿
-                      </Button>
-                    </div>
-                  )}
+              <VaultItem key={item.id} onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => handleOpen(e, item.signatories)}>
+                <StyledPanel bordered>
+                  <Header>
+                    <Text fontSize="0.9rem" fontWeight={700}>
+                      {item.vault.name}
+                    </Text>
+                    {item.vault.status === "0x01" && (
+                      <div>
+                        <Button
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
+                            setDepositModalState({ show: true, data: item.bitcoin?.address });
+                          }}
+                        >
+                          Deposit ₿
+                        </Button>
+                        <StyledButton
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                          }}
+                          margin="0 0 0 0.5rem"
+                        >
+                          Withdraw ₿
+                        </StyledButton>
+                      </div>
+                    )}
+                  </Header>
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
@@ -411,7 +446,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           }
         })}
 
-        {/* {modalState.show && renderModal()} */}
+        {modalState.show && renderSignatoryDetailModal()}
         {depositModalState.show && renderDepositModal()}
         {withdrawModalState.show && renderWithdrawModal()}
       </VaultList>
@@ -423,6 +458,8 @@ interface TextProps {
   fontSize?: string;
   alignSelf?: string;
   fontWeight?: number;
+  padding?: string;
+  display?: string;
 }
 
 const Container = styled(Grid)`
@@ -460,6 +497,9 @@ const Text = styled.span<TextProps>`
   font-weight: ${(props) => (props.fontWeight ? props.fontWeight : 500)};
   margin-bottom: 4px;
   align-self: ${(props) => props.alignSelf};
+  color: ${(props) => props.color};
+  padding: ${(props) => props.padding};
+  display: ${(props) => props.display};
 `;
 
 const StyledPanel = styled(Panel)`
@@ -471,3 +511,36 @@ const StyledPanel = styled(Panel)`
 const ModalTitle = styled(Modal.Title)`
   font-weight: 700;
 `;
+
+const StyledInputGroup = styled(InputGroup)`
+  width: 100%;
+  margin: auto auto 1rem auto;
+  align-self: center;
+`;
+
+const QRContainer = styled.div`
+  height: auto;
+  margin: 0 auto;
+  max-width: 200px;
+  width: 100%;
+  margin-bottom: 1rem;
+`;
+
+const StyledButton = styled(Button)`
+  margin: ${(props) => props.margin};
+  padding: ${(props) => props.padding};
+`;
+
+const AmountInputContainer = styled.div`
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+`;
+
+// const AllButton = styled(Button)`
+//   font-size: 0.87rem;
+//   color: #a6d7ff;
+//   margin-left: 0.5rem;
+// `;

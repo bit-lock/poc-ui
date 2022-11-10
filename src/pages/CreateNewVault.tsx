@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Loader } from "rsuite";
+import toastr from "toastr";
 import { ROUTE_PATH } from "../routes/ROUTE_PATH";
 import { Web3Lib } from "../lib/Web3Lib";
 import { SignatoryState } from "../lib/models/SignatoryState";
@@ -170,10 +171,14 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       };
     });
 
-    await web3Instance.initialVault(account, vaultName, editedThreshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
-    setLoading(false);
+    try {
+      await web3Instance.initialVault(account, vaultName, editedThreshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
+      navigate(ROUTE_PATH.VAULTS);
+    } catch (err: any) {
+      toastr.error(err.message);
+    }
 
-    navigate(ROUTE_PATH.VAULTS);
+    setLoading(false);
   };
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
