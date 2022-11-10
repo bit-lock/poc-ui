@@ -261,7 +261,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             <StyledInputGroup>
               <Input
                 placeholder={"Bitcoin Address"}
-                value={withdrawModalState.address}
+                value={withdrawModalState.address || ""}
                 onChange={(value) => {
                   destinationAddressOnChange(value);
                 }}
