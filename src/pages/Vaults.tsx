@@ -311,7 +311,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       {item.vault.name}
                     </Text>
                     {item.vault.status === "0x00" && <Button onClick={() => navigate("/edit-signatories/" + item.id)}>Edit</Button>}
-                    {item.vault.status !== "0x00" && (
+                    {item.vault.status === "0x01" && (
                       <div>
                         <Button
                           onClick={() => {
@@ -367,6 +367,25 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             return (
               <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
                 <StyledPanel bordered header={item.vault.name}>
+                  {item.vault.status === "0x01" && (
+                    <div>
+                      <Button
+                        onClick={() => {
+                          setDepositModalState({ show: true, data: item.bitcoin?.address });
+                        }}
+                      >
+                        Deposit ₿
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                        }}
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        Withdraw ₿
+                      </Button>
+                    </div>
+                  )}
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
