@@ -216,17 +216,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             <ModalTitle>Deposit Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <div style={{ height: "auto", margin: "0 auto", maxWidth: 200, width: "100%", marginBottom: "1rem" }}>
+            <QRContainer>
               <QRCode size={256} style={{ height: "auto", maxWidth: "100%", width: "100%" }} value={depositModalState.data} viewBox={`0 0 256 256`} />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            </QRContainer>
+            <StyledInputGroup>
               <Input value={depositModalState.data} />
               <Whisper placement="top" trigger="click" speaker={<Tooltip>BTC Address</Tooltip>}>
                 <InputGroup.Button onClick={() => navigator.clipboard.writeText(depositModalState.data || "")}>
                   <CopyIcon width="1rem" height="1rem" />
                 </InputGroup.Button>
               </Whisper>
-            </div>
+            </StyledInputGroup>
           </Modal.Body>
         </Modal>
       );
@@ -247,10 +247,11 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             <ModalTitle>Withdraw Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿ </Header>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Text padding="0.3rem" display="block">
+              Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿{" "}
+            </Text>
+            <StyledInputGroup>
               <Input
-                style={{ marginRight: "0.4rem" }}
                 placeholder={"Bitcoin Address"}
                 value={withdrawModalState.address}
                 onChange={(value) => {
@@ -263,20 +264,22 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                   <CopyIcon width="1rem" height="1rem" />
                 </InputGroup.Button>
               </Whisper>
-            </div>
-            {withdrawModalState.errorMessage && <Text style={{ color: "red" }}>{withdrawModalState.errorMessage}</Text>}
-            <Input
-              style={{ marginTop: "1rem" }}
-              type="number"
-              placeholder="Amount (decimal)"
-              value={withdrawModalState.amount}
-              onChange={(e) => {
-                setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
-              }}
-            />
-            <Button onClick={withdrawClick} style={{ padding: "0.5rem", marginTop: "1rem" }}>
+            </StyledInputGroup>
+            {withdrawModalState.errorMessage && <Text color="red">{withdrawModalState.errorMessage}</Text>}
+            <AmountInputContainer>
+              <Input
+                type="number"
+                placeholder="Amount (decimal)"
+                value={withdrawModalState.amount}
+                onChange={(e: string) => {
+                  setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
+                }}
+              />
+            </AmountInputContainer>
+
+            <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0">
               Withdraw ₿
-            </Button>
+            </StyledButton>
           </Modal.Body>
         </Modal>
       );
@@ -320,14 +323,14 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                         >
                           Deposit ₿
                         </Button>
-                        <Button
+                        <StyledButton
                           onClick={() => {
                             setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                           }}
-                          style={{ marginLeft: "0.5rem" }}
+                          margin="0 0 0 0.5rem"
                         >
                           Withdraw ₿
-                        </Button>
+                        </StyledButton>
                       </div>
                     )}
                   </Header>
@@ -376,14 +379,14 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       >
                         Deposit ₿
                       </Button>
-                      <Button
+                      <StyledButton
                         onClick={() => {
                           setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                         }}
-                        style={{ marginLeft: "0.5rem" }}
+                        margin="0 0 0 0.5rem"
                       >
                         Withdraw ₿
-                      </Button>
+                      </StyledButton>
                     </div>
                   )}
                   <Text>Id: {item.id}</Text>
@@ -423,6 +426,8 @@ interface TextProps {
   fontSize?: string;
   alignSelf?: string;
   fontWeight?: number;
+  padding?: string;
+  display?: string;
 }
 
 const Container = styled(Grid)`
@@ -460,6 +465,9 @@ const Text = styled.span<TextProps>`
   font-weight: ${(props) => (props.fontWeight ? props.fontWeight : 500)};
   margin-bottom: 4px;
   align-self: ${(props) => props.alignSelf};
+  color: ${(props) => props.color};
+  padding: ${(props) => props.padding};
+  display: ${(props) => props.display};
 `;
 
 const StyledPanel = styled(Panel)`
@@ -470,4 +478,31 @@ const StyledPanel = styled(Panel)`
 
 const ModalTitle = styled(Modal.Title)`
   font-weight: 700;
+`;
+
+const StyledInputGroup = styled(InputGroup)`
+  width: 100%;
+  margin: auto auto 1rem auto;
+  align-self: center;
+`;
+
+const QRContainer = styled.div`
+  height: auto;
+  margin: 0 auto;
+  max-width: 200px;
+  width: 100%;
+  margin-bottom: 1rem;
+`;
+
+const StyledButton = styled(Button)`
+  margin: ${(props) => props.margin};
+  padding: ${(props) => props.padding};
+`;
+
+const AmountInputContainer = styled.div`
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 `;
