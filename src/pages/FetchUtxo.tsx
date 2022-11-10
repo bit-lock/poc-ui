@@ -1,67 +1,32 @@
 /* eslint-disable array-callback-return */
-import React, { useEffect, useState } from "react";
-import { esploraClient, init, TxDetail } from "@bitmatrix/esplora-api-client";
+import React, { useState } from "react";
 import { Button, Input, List, Loader } from "rsuite";
 import styled from "styled-components";
-import toastr from "toastr";
+
+import { calculateTxFees, fetchUtxos } from "../lib/bitcoin/utils";
+import { UTXO } from "../lib/models/UTXO";
 
 export const FetchUtxo = () => {
-  const [address, setAddress] = useState<string>("");
-  const [utxoSets, setUtxoSets] = useState<Array<{ txId: string; vout: number; value: number }>>([]);
+  const [address, setAddress] = useState<string>("tb1prkzak825qdg3ngem6jeyadg99dml0ppqkg7tz7n24eq0kduk86js5xc8a4");
+  const [destinationAddress, setDestinationAddress] = useState<string>("");
+  const [utxoSets, setUtxoSets] = useState<UTXO[]>([]);
   const [loader, setLoader] = useState<boolean>(false);
-
-  useEffect(() => {
-    init("https://blockstream.info/testnet/api");
-  }, []);
 
   const getMyBalances = async () => {
     setLoader(true);
 
-    let myUtxoSets: { txId: string; vout: number; value: number }[] = [];
-    let txs: TxDetail[] = [];
+    const data = await fetchUtxos(address);
 
-    try {
-      txs = await esploraClient.addressTxs(address);
-    } catch (err: any) {
-      toastr.error(err.response.data);
-    }
+    setUtxoSets(data);
 
-    if (txs.length > 0) {
-      const myPromises = txs.map((tx) => {
-        return esploraClient.txOutspends(tx.txid);
-      });
+    setLoader(false);
+  };
 
-      Promise.all(myPromises)
-        .then((myProm) => {
-          myProm.forEach((os, index) => {
-            const tx = txs[index];
-
-            const unSpentIndexs = os
-              .map((outspend, index: number) => {
-                if (!outspend.spent) {
-                  return index;
-                }
-              })
-              .filter((dt) => dt !== undefined);
-
-            if (unSpentIndexs.length > 0) {
-              unSpentIndexs.forEach((us) => {
-                if (us !== undefined) {
-                  if (tx.vout[us].scriptpubkey_address === address) {
-                    myUtxoSets.push({ txId: tx.txid, vout: us, value: (tx.vout[us].value || 0) / 100000000 });
-                  }
-                }
-              });
-            }
-          });
-        })
-        .finally(() => {
-          setUtxoSets(myUtxoSets);
-          setLoader(false);
-        });
-    } else {
-      setLoader(false);
-    }
+  const test = async () => {
+    const script =
+      "7651876351b202c4096b676a68006b205d4a97906953d0d365e6a8bfa164b298cbabf5ef6711d1a233728060cb11fc5dac63024c1d6700686c936b2055faddcd69d4dff3485f45529eaaaf1a67093797e5fbf91fe24628694c46d7d8ac6302c4096700686c936b6c6ca2";
+    const res = await calculateTxFees(utxoSets, 2, script);
+    console.log(res);
   };
 
   return (
@@ -73,6 +38,11 @@ export const FetchUtxo = () => {
           <FromContainer>
             <Input value={address} onChange={(value) => setAddress(value)} />
             <StyledButton onClick={getMyBalances}>Get My UTXOS</StyledButton>
+          </FromContainer>
+
+          <FromContainer>
+            <Input value={destinationAddress} onChange={(value) => setDestinationAddress(value)} />
+            <StyledButton onClick={test}>Create Destination Pubkey</StyledButton>
           </FromContainer>
 
           {utxoSets.length > 0 && (
