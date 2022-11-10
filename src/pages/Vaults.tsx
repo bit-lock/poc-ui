@@ -24,6 +24,8 @@ type Props = {
 export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const navigate = useNavigate();
 
+  const [time, setTime] = useState(Date.now());
+
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -43,6 +45,13 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   }>({
     show: false,
   });
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(Date.now()), 60000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -103,7 +112,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     };
 
     init();
-  }, [account]);
+  }, [account, time]);
 
   const calculateWaitingConfirmCount = (signatories: Signatories) => {
     const currentData: string[] = signatories[2];
