@@ -210,6 +210,15 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     console.log("Withdraw input amount", amountSats);
   };
 
+  const allButtonClick = () => {
+    const vaultBalance = withdrawModalState.bitcoin?.balance || 0;
+    const currentFee = (withdrawModalState.bitcoin?.fee || 0) / BITCOIN_PER_SATOSHI;
+
+    let allAmount = vaultBalance - currentFee;
+    if (allAmount < 0) allAmount = 0;
+    setWithdrawModalState({ ...withdrawModalState, amount: allAmount });
+  };
+
   const renderDepositModal = () => {
     if (depositModalState.data) {
       return (
@@ -284,6 +293,10 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                 }}
               />
             </AmountInputContainer>
+
+            <StyledButton onClick={allButtonClick} padding="0.5rem" margin="1rem 1rem 0 0rem">
+              All ₿
+            </StyledButton>
 
             <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0">
               Withdraw ₿
@@ -363,14 +376,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <br />
                       <>
                         <Text>Balance : {item.bitcoin?.balance} ₿</Text>
-                        <AllButton
-                          appearance="subtle"
-                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-                            e.stopPropagation();
-                          }}
-                        >
-                          ALL
-                        </AllButton>
                       </>
                     </>
                   )}
