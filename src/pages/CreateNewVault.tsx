@@ -135,7 +135,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
 
-    // const editedThreshold = threshold * 100;
+    const editedThreshold = threshold * 100;
 
     const date = new Date();
 
@@ -170,9 +170,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
       };
     });
 
-    console.log(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
-
-    await web3Instance.initialVault(account, vaultName, threshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
+    await web3Instance.initialVault(account, vaultName, editedThreshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
     setLoading(false);
 
     navigate(ROUTE_PATH.VAULTS);

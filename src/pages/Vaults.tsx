@@ -5,18 +5,23 @@ import { useNavigate } from "react-router-dom";
 import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
-import { bitcoinBalanceCalculation, calculateTxFees, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
 import { Vault } from "../lib/models/Vault";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
+import { utils } from "@script-wiz/lib-core";
+// import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
+
+const BITCOIN_PER_SATOSHI = 100000000;
 
 type Props = {
   account: string;
+  privateKey: string;
 };
 
-export const Vaults: React.FC<Props> = ({ account }) => {
+export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const navigate = useNavigate();
 
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
@@ -26,11 +31,15 @@ export const Vaults: React.FC<Props> = ({ account }) => {
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
   const [withdrawModalState, setWithdrawModalState] = useState<{
     show: boolean;
-    balance?: number;
     address?: string;
     scriptPubkey?: string;
     errorMessage?: string;
     amount?: number;
+    bitcoin?: {
+      address: string;
+      balance: number;
+      fee: number;
+    };
   }>({
     show: false,
   });
@@ -63,7 +72,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
           const minimumSignatoryCount = calculateSignCount(currentVault, signatories[z]);
 
           if (currentVault.status === "0x01") {
-            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold) * 100, signatories[z]);
+            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
 
@@ -77,7 +86,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
           const minimumSignatoryCount = calculateSignCount(currentVault, signatories[z]);
 
           if (currentVault.status === "0x01") {
-            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold) * 100, signatories[z]);
+            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
@@ -115,7 +124,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
   };
 
   const calculateSignCount = (vault: Vault, signatories: Signatories) => {
-    const threshold = Number(vault.threshold) * 100;
+    const threshold = Number(vault.threshold);
     const signatoryThresholds = signatories[1].map((data) => Number(data));
 
     const orderedSignatoryThresholds = signatoryThresholds.sort((a, b) => a - b);
@@ -176,6 +185,23 @@ export const Vaults: React.FC<Props> = ({ account }) => {
     setWithdrawModalState({ ...withdrawModalState, address, scriptPubkey, errorMessage });
   };
 
+  const withdrawClick = async () => {
+    // const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
+    const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
+    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
+
+    // temp
+    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
+
+    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
+
+    // console.log(signPreimages(privateKey, preimages));
+
+    console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
+    console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);
+    console.log("Withdraw input amount", amountSats);
+  };
+
   const renderDepositModal = () => {
     if (depositModalState.data) {
       return (
@@ -221,7 +247,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
             <ModalTitle>Withdraw Bitcoin</ModalTitle>
           </Modal.Header>
           <Modal.Body>
-            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.balance}₿ </Header>
+            <Header style={{ padding: "0.3rem", display: "block" }}>Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿ </Header>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Input
                 style={{ marginRight: "0.4rem" }}
@@ -248,12 +274,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                 setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
               }}
             />
-            <Button
-              onClick={() => {
-                console.log("widthdraw click");
-              }}
-              style={{ padding: "0.5rem", marginTop: "1rem" }}
-            >
+            <Button onClick={withdrawClick} style={{ padding: "0.5rem", marginTop: "1rem" }}>
               Withdraw ₿
             </Button>
           </Modal.Body>
@@ -290,7 +311,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                       {item.vault.name}
                     </Text>
                     {item.vault.status === "0x00" && <Button onClick={() => navigate("/edit-signatories/" + item.id)}>Edit</Button>}
-                    {item.vault.status !== "0x00" && (
+                    {item.vault.status === "0x01" && (
                       <div>
                         <Button
                           onClick={() => {
@@ -301,7 +322,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                         </Button>
                         <Button
                           onClick={() => {
-                            setWithdrawModalState({ show: true, balance: item.bitcoin?.balance });
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                           }}
                           style={{ marginLeft: "0.5rem" }}
                         >
@@ -314,7 +335,7 @@ export const Vaults: React.FC<Props> = ({ account }) => {
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {item.vault.threshold}</Text>
+                  <Text>Threshold: {Number(item.vault.threshold) / 100}</Text>
                   <br />
                   <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
@@ -346,11 +367,30 @@ export const Vaults: React.FC<Props> = ({ account }) => {
             return (
               <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
                 <StyledPanel bordered header={item.vault.name}>
+                  {item.vault.status === "0x01" && (
+                    <div>
+                      <Button
+                        onClick={() => {
+                          setDepositModalState({ show: true, data: item.bitcoin?.address });
+                        }}
+                      >
+                        Deposit ₿
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                        }}
+                        style={{ marginLeft: "0.5rem" }}
+                      >
+                        Withdraw ₿
+                      </Button>
+                    </div>
+                  )}
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {item.vault.threshold}</Text>
+                  <Text>Threshold: {Number(item.vault.threshold) / 100}</Text>
                   <br />
                   <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />

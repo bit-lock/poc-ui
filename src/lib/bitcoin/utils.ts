@@ -149,3 +149,9 @@ export const lexicographical = (aTx: string, bTx: string): number => {
 
   return arithmetics64.greaterThan64(WizData.fromHex(a), WizData.fromHex(b)).number === 1 ? 1 : -1;
 };
+
+export const convertTo35Byte = (hex: string) => {
+  const hexByteLegth = hex.length / 2;
+
+  return hex + "00".repeat(35 - hexByteLegth);
+};
