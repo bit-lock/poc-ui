@@ -278,7 +278,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               <Input
                 type="number"
                 placeholder="Amount (decimal)"
-                value={withdrawModalState.amount}
+                value={withdrawModalState.amount || ""}
                 onChange={(e: string) => {
                   setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
                 }}
@@ -379,26 +379,33 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           if (!item.isMyOwner) {
             return (
               <VaultItem key={item.id} onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => handleOpen(e, item.signatories)}>
-                <StyledPanel bordered header={item.vault.name}>
-                  {item.vault.status === "0x01" && (
-                    <div>
-                      <Button
-                        onClick={() => {
-                          setDepositModalState({ show: true, data: item.bitcoin?.address });
-                        }}
-                      >
-                        Deposit ₿
-                      </Button>
-                      <StyledButton
-                        onClick={() => {
-                          setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
-                        }}
-                        margin="0 0 0 0.5rem"
-                      >
-                        Withdraw ₿
-                      </StyledButton>
-                    </div>
-                  )}
+                <StyledPanel bordered>
+                  <Header>
+                    <Text fontSize="0.9rem" fontWeight={700}>
+                      {item.vault.name}
+                    </Text>
+                    {item.vault.status === "0x01" && (
+                      <div>
+                        <Button
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
+                            setDepositModalState({ show: true, data: item.bitcoin?.address });
+                          }}
+                        >
+                          Deposit ₿
+                        </Button>
+                        <StyledButton
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                          }}
+                          margin="0 0 0 0.5rem"
+                        >
+                          Withdraw ₿
+                        </StyledButton>
+                      </div>
+                    )}
+                  </Header>
                   <Text>Id: {item.id}</Text>
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
