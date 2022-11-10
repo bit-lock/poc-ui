@@ -12,7 +12,7 @@ import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
-import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
+// import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
 
 const BITCOIN_PER_SATOSHI = 100000000;
 
@@ -72,7 +72,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           const minimumSignatoryCount = calculateSignCount(currentVault, signatories[z]);
 
           if (currentVault.status === "0x01") {
-            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold) * 100, signatories[z]);
+            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
 
@@ -86,7 +86,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           const minimumSignatoryCount = calculateSignCount(currentVault, signatories[z]);
 
           if (currentVault.status === "0x01") {
-            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold) * 100, signatories[z]);
+            const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
@@ -124,7 +124,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   };
 
   const calculateSignCount = (vault: Vault, signatories: Signatories) => {
-    const threshold = Number(vault.threshold) * 100;
+    const threshold = Number(vault.threshold);
     const signatoryThresholds = signatories[1].map((data) => Number(data));
 
     const orderedSignatoryThresholds = signatoryThresholds.sort((a, b) => a - b);
@@ -335,7 +335,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {item.vault.threshold}</Text>
+                  <Text>Threshold: {Number(item.vault.threshold) / 100}</Text>
                   <br />
                   <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
@@ -371,7 +371,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                   <br />
                   <Text>Initiator: {item.vault.initiator}</Text>
                   <br />
-                  <Text>Threshold: {item.vault.threshold}</Text>
+                  <Text>Threshold: {Number(item.vault.threshold) / 100}</Text>
                   <br />
                   <Text>Status: {item.vault.status === "0x00" ? "Waiting Confirmations" : "Finalized"}</Text>
                   <br />
