@@ -361,7 +361,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <br />
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
-                      <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                      <>
+                        <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                        <AllButton
+                          appearance="subtle"
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
+                          }}
+                        >
+                          ALL
+                        </AllButton>
+                      </>
                     </>
                   )}
                 </StyledPanel>
@@ -522,4 +532,10 @@ const AmountInputContainer = styled.div`
     -webkit-appearance: none;
     margin: 0;
   }
+`;
+
+const AllButton = styled(Button)`
+  font-size: 0.87rem;
+  color: #a6d7ff;
+  margin-left: 0.5rem;
 `;
