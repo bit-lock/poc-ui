@@ -97,11 +97,6 @@ export const AppRouter = (): JSX.Element => {
         },
       ],
     },
-
-    // {
-    //   path: ROUTE_PATH.FETCH_UTXO,
-    //   element: <FetchUtxo />,
-    // },
   ]);
 
   return <>{loading ? <Loader backdrop content="Waiting Confirm..." vertical /> : <RouterProvider router={router} />}</>;
