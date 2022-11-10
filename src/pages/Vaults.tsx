@@ -117,9 +117,8 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     return "Confirmation Count : " + waitingConfirmationCount + " / " + confimationCount;
   };
 
-  // const handleClose = () => setModalState({ show: false });
-
-  const handleOpen = (signatories: Signatories) => {
+  const handleOpen = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, signatories: Signatories) => {
+    event.stopPropagation();
     setModalState({ show: true, data: signatories });
   };
 
@@ -147,37 +146,37 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     return currentThresholdCount;
   };
 
-  // const renderModal = () => {
-  //   if (modalState.data) {
-  //     const signatoriesAddress = modalState.data[0];
-  //     const percent = modalState.data[1];
-  //     const confirmation = modalState.data[2];
+  const renderSignatoryDetailModal = () => {
+    if (modalState.data) {
+      const signatoriesAddress = modalState.data[0];
+      const percent = modalState.data[1];
+      const confirmation = modalState.data[2];
 
-  //     return (
-  //       <Modal size="sm" open={modalState.show} onClose={handleClose}>
-  //         <Modal.Header>
-  //           <ModalTitle>Signatories</ModalTitle>
-  //           {signatoriesAddress.map((item: string, index: number) => {
-  //             return (
-  //               <div key={index}>
-  //                 <br />
-  //                 <Text fontWeight={700}>Signatory {index + 1}</Text>
-  //                 <br />
-  //                 <Text>Address: {item}</Text>
-  //                 <br />
-  //                 <Text>Shared: {Number(percent[index]) / 100}%</Text>
-  //                 <br />
-  //                 {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
-  //                 <br />
-  //               </div>
-  //             );
-  //           })}
-  //         </Modal.Header>
-  //         <Modal.Body></Modal.Body>
-  //       </Modal>
-  //     );
-  //   }
-  // };
+      return (
+        <Modal size="sm" open={modalState.show} onClose={() => setModalState({ show: false })}>
+          <Modal.Header>
+            <ModalTitle>Signatories</ModalTitle>
+            {signatoriesAddress.map((item: string, index: number) => {
+              return (
+                <div key={index}>
+                  <br />
+                  <Text fontWeight={700}>Signatory {index + 1}</Text>
+                  <br />
+                  <Text>Address: {item}</Text>
+                  <br />
+                  <Text>Shared: {Number(percent[index]) / 100}%</Text>
+                  <br />
+                  {confirmation[index] === "0x0000000000000000000000000000000000000000000000000000000000000000" ? "Waiting Confirmation" : "Approved"}
+                  <br />
+                </div>
+              );
+            })}
+          </Modal.Header>
+          <Modal.Body></Modal.Body>
+        </Modal>
+      );
+    }
+  };
 
   const destinationAddressOnChange = (address: string) => {
     const { scriptPubkey, errorMessage } = createDestinationPubkey(address);
@@ -307,7 +306,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
         {vaultList.map((item) => {
           if (item.isMyOwner) {
             return (
-              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
+              <VaultItem key={item.id} onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => handleOpen(e, item.signatories)}>
                 <StyledPanel bordered>
                   <Header>
                     <Text fontSize="0.9rem" fontWeight={700}>
@@ -317,14 +316,16 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                     {item.vault.status === "0x01" && (
                       <div>
                         <Button
-                          onClick={() => {
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
                             setDepositModalState({ show: true, data: item.bitcoin?.address });
                           }}
                         >
                           Deposit ₿
                         </Button>
                         <StyledButton
-                          onClick={() => {
+                          onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+                            e.stopPropagation();
                             setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
                           }}
                           margin="0 0 0 0.5rem"
@@ -368,7 +369,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
         {vaultList.map((item) => {
           if (!item.isMyOwner) {
             return (
-              <VaultItem key={item.id} onClick={() => handleOpen(item.signatories)}>
+              <VaultItem key={item.id} onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => handleOpen(e, item.signatories)}>
                 <StyledPanel bordered header={item.vault.name}>
                   {item.vault.status === "0x01" && (
                     <div>
@@ -414,7 +415,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           }
         })}
 
-        {/* {modalState.show && renderModal()} */}
+        {modalState.show && renderSignatoryDetailModal()}
         {depositModalState.show && renderDepositModal()}
         {withdrawModalState.show && renderWithdrawModal()}
       </VaultList>
