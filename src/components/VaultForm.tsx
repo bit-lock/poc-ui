@@ -159,7 +159,7 @@ export const VaultForm: React.FC<Props> = ({
         <StyledSlider
           progress
           step={0.01}
-          defaultValue={25.0}
+          defaultValue={threshold}
           margin="auto auto 1rem 1.3rem"
           onChange={(value) => {
             thresholdChangeCallback(value);
@@ -233,7 +233,7 @@ export const VaultForm: React.FC<Props> = ({
       <CustomAddButton onClick={addAuthorizedAddressButtonClick}>Add Authorized Address</CustomAddButton>
 
       <CustomAddButton appearance="primary" onClick={formOnClick} disabled={vaultName === "" || threshold === 0}>
-        Initialize Vault
+        {vaultName ? "Edit Vault" : "Initialize Vault"}
       </CustomAddButton>
     </Wrapper>
   );

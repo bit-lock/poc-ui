@@ -34,6 +34,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       .getVaults(id)
       .then((res) => {
         setVaultName(res.name);
+        setThreshold(Number(res.threshold) / 100);
 
         web3Instance
           .getSignatories(id)
