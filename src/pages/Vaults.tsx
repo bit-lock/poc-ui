@@ -47,7 +47,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   });
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 60000);
+    const interval = setInterval(() => setTime(Date.now()), 6000);
     return () => {
       clearInterval(interval);
     };
@@ -539,8 +539,8 @@ const AmountInputContainer = styled.div`
   }
 `;
 
-const AllButton = styled(Button)`
-  font-size: 0.87rem;
-  color: #a6d7ff;
-  margin-left: 0.5rem;
-`;
+// const AllButton = styled(Button)`
+//   font-size: 0.87rem;
+//   color: #a6d7ff;
+//   margin-left: 0.5rem;
+// `;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
 import { VaultState } from "../lib/models/VaultState";
@@ -22,75 +22,76 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     };
   }, []);
 
+  const init = useCallback(async () => {
+    const web3Instance = new Web3Lib();
+
+    const vaultCount = await web3Instance.getVaultLength();
+    const fetchVaultPromises = [];
+    const fetchSignatoriesPromises = [];
+
+    for (let i = 0; i < vaultCount; i++) {
+      fetchVaultPromises.push(web3Instance.getVaults(i));
+      fetchSignatoriesPromises.push(web3Instance.getSignatories(i));
+    }
+
+    const vaults = await Promise.all(fetchVaultPromises);
+    const signatories = await Promise.all(fetchSignatoriesPromises);
+
+    const myCurrentAdress = account.toLowerCase();
+
+    const accountVaultList = [];
+
+    for (let z = 0; z < vaultCount; z++) {
+      const currentVault = vaults[z];
+      const currentSignatories = signatories[z][0].map((data: string) => data.toLowerCase());
+
+      if (currentVault.initiator.toLowerCase() === myCurrentAdress) {
+        accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: true, minimumSignatoryCount: 0 });
+      } else if (currentSignatories.includes(myCurrentAdress)) {
+        accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: false, minimumSignatoryCount: 0 });
+      }
+    }
+
+    const notFinalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x00");
+
+    const approveList: VaultState[] = notFinalizedVaults.filter((currentData) => {
+      const signatoryAddressList = currentData.signatories[0];
+      const myCurrentIndex = signatoryAddressList.findIndex((address: string) => address.toLowerCase() === myCurrentAdress);
+      const signatoryPubKeyList = currentData.signatories[2];
+
+      if (signatoryPubKeyList[myCurrentIndex] !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
+        return false;
+      } else {
+        return true;
+      }
+    });
+
+    setApproveRequestList(approveList);
+
+    const waitingFinalizeList = notFinalizedVaults.filter((data) => {
+      if (data.isMyOwner) {
+        const signatories = data.signatories[2];
+        return !signatories.some((element: string) => {
+          return element === "0x0000000000000000000000000000000000000000000000000000000000000000";
+        });
+      } else {
+        return false;
+      }
+    });
+
+    setFinalizeRequestList(waitingFinalizeList);
+    setLoading(false);
+  }, [account]);
+
   useEffect(() => {
-    const init = async () => {
-      const web3Instance = new Web3Lib();
-
-      const vaultCount = await web3Instance.getVaultLength();
-      const fetchVaultPromises = [];
-      const fetchSignatoriesPromises = [];
-
-      for (let i = 0; i < vaultCount; i++) {
-        fetchVaultPromises.push(web3Instance.getVaults(i));
-        fetchSignatoriesPromises.push(web3Instance.getSignatories(i));
-      }
-
-      const vaults = await Promise.all(fetchVaultPromises);
-      const signatories = await Promise.all(fetchSignatoriesPromises);
-
-      const myCurrentAdress = account.toLowerCase();
-
-      const accountVaultList = [];
-
-      for (let z = 0; z < vaultCount; z++) {
-        const currentVault = vaults[z];
-        const currentSignatories = signatories[z][0].map((data: string) => data.toLowerCase());
-
-        if (currentVault.initiator.toLowerCase() === myCurrentAdress) {
-          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: true, minimumSignatoryCount: 0 });
-        } else if (currentSignatories.includes(myCurrentAdress)) {
-          accountVaultList.push({ id: z, vault: vaults[z], signatories: signatories[z], isMyOwner: false, minimumSignatoryCount: 0 });
-        }
-      }
-
-      const notFinalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x00");
-
-      const approveList: VaultState[] = notFinalizedVaults.filter((currentData) => {
-        const signatoryAddressList = currentData.signatories[0];
-        const myCurrentIndex = signatoryAddressList.findIndex((address: string) => address.toLowerCase() === myCurrentAdress);
-        const signatoryPubKeyList = currentData.signatories[2];
-
-        if (signatoryPubKeyList[myCurrentIndex] !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
-          return false;
-        } else {
-          return true;
-        }
-      });
-
-      setApproveRequestList(approveList);
-
-      const waitingFinalizeList = notFinalizedVaults.filter((data) => {
-        if (data.isMyOwner) {
-          const signatories = data.signatories[2];
-          return !signatories.some((element: string) => {
-            return element === "0x0000000000000000000000000000000000000000000000000000000000000000";
-          });
-        } else {
-          return false;
-        }
-      });
-
-      setFinalizeRequestList(waitingFinalizeList);
-      setLoading(false);
-    };
-
     init();
-  }, [account, time]);
+  }, [init, time]);
 
   const approveSignatory = async (id: number) => {
     setLoading(true);
     const web3Instance = new Web3Lib();
     await web3Instance.approveSignatory(id, "0x" + publicKey, account);
+    await init();
     setLoading(false);
   };
 
@@ -98,6 +99,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     setLoading(true);
     const web3Instance = new Web3Lib();
     await web3Instance.finalizeVault(id, account);
+    await init();
     setLoading(false);
   };
 
@@ -153,7 +155,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                   </RequestList>
                 </>
               )}
-              {approveRequestList.length === 0 && finalizeRequestList.length === 0 && <Text fontSize="18px">No Data</Text>}
+              {approveRequestList.length === 0 && finalizeRequestList.length === 0 && <Text fontSize="18px">You don't have any request</Text>}
             </Panel>
           </StyledBoxItem>
         </StyledBox>

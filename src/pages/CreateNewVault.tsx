@@ -173,13 +173,12 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
     try {
       await web3Instance.initialVault(account, vaultName, editedThreshold, signatoriesAddress, signatoriesShares, authorizedAddresses, editedPeriods);
+      navigate(ROUTE_PATH.VAULTS);
     } catch (err: any) {
       toastr.error(err.message);
     }
 
     setLoading(false);
-
-    navigate(ROUTE_PATH.VAULTS);
   };
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;

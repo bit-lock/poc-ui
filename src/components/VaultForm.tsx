@@ -233,7 +233,7 @@ export const VaultForm: React.FC<Props> = ({
       <CustomAddButton onClick={addAuthorizedAddressButtonClick}>Add Authorized Address</CustomAddButton>
 
       <CustomAddButton appearance="primary" onClick={formOnClick} disabled={vaultName === "" || threshold === 0}>
-        {vaultName ? "Edit Vault" : "Initialize Vault"}
+        {vaultName !== "" ? "Edit Vault" : "Initialize Vault"}
       </CustomAddButton>
     </Wrapper>
   );
