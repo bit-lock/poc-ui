@@ -10,9 +10,17 @@ type Props = {
 };
 
 export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
+  const [time, setTime] = useState(Date.now());
   const [loading, setLoading] = useState<boolean>(true);
   const [approveRequestList, setApproveRequestList] = useState<VaultState[]>([]);
   const [finalizeRequestList, setFinalizeRequestList] = useState<VaultState[]>([]);
+
+  useEffect(() => {
+    const interval = setInterval(() => setTime(Date.now()), 60000);
+    return () => {
+      clearInterval(interval);
+    };
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -77,7 +85,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     };
 
     init();
-  }, [account]);
+  }, [account, time]);
 
   const approveSignatory = async (id: number) => {
     setLoading(true);
