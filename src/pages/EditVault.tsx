@@ -87,6 +87,13 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const editVaultClick = async () => {
     setLoading(true);
+
+    if (!authorizedAddresses.every((e, i, a) => a.indexOf(e) === i)) {
+      toastr.error("Authorized Addresses must be unique.");
+      setLoading(false);
+      return;
+    }
+
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
