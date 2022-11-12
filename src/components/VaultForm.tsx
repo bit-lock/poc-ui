@@ -65,22 +65,22 @@ export const VaultForm: React.FC<Props> = ({
   removeAuthorizedAddessButtonOnClick,
   onChangeSharedInputCallback,
 }) => {
-  const calculateMaxValue = (index: number) => {
-    switch (index) {
-      case 0: {
-        return threshold;
-      }
-      case 1: {
-        return degradingPeriods[0].shared;
-      }
-      case 2: {
-        return degradingPeriods[1].shared;
-      }
-      default: {
-        return 100;
-      }
-    }
-  };
+  // const calculateMaxValue = (index: number) => {
+  //   switch (index) {
+  //     case 0: {
+  //       return threshold;
+  //     }
+  //     case 1: {
+  //       return degradingPeriods[0].shared;
+  //     }
+  //     case 2: {
+  //       return degradingPeriods[1].shared;
+  //     }
+  //     default: {
+  //       return 100;
+  //     }
+  //   }
+  // };
 
   return (
     <Wrapper>
@@ -198,7 +198,6 @@ export const VaultForm: React.FC<Props> = ({
             </InputContainer>
             <StyledSlider
               progress
-              max={calculateMaxValue(index)}
               step={0.01}
               value={data.shared}
               onChange={(value) => {

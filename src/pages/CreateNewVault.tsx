@@ -85,7 +85,16 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     const clonedDegradingPeriods = [...degradingPeriods];
 
     const currentData = clonedDegradingPeriods[index];
-    currentData.shared = value;
+
+    if (index === 0 && value > threshold) {
+      currentData.shared = threshold;
+    } else if (index === 1 && value > clonedDegradingPeriods[0].shared) {
+      currentData.shared = clonedDegradingPeriods[0].shared;
+    } else if (index === 2 && value > clonedDegradingPeriods[1].shared) {
+      currentData.shared = clonedDegradingPeriods[1].shared;
+    } else {
+      currentData.shared = value;
+    }
 
     setDegradingPeriods(clonedDegradingPeriods);
   };
