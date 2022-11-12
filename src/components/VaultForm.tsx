@@ -19,6 +19,7 @@ type Props = {
   degradingPeriods: DegradingPeriod[];
   authorizedAddresses: string[];
   selectedValues?: { index: number; value: number };
+  isEditMode?: boolean;
   addNewSignatoryOnClick: () => void;
   formOnClick: () => void;
   selectedValuesChangeCallback: (value: any) => void;
@@ -45,6 +46,7 @@ export const VaultForm: React.FC<Props> = ({
   degradingPeriods,
   authorizedAddresses,
   selectedValues,
+  isEditMode,
   addNewSignatoryOnClick,
   formOnClick,
   editButtonClick,
@@ -233,7 +235,7 @@ export const VaultForm: React.FC<Props> = ({
       <CustomAddButton onClick={addAuthorizedAddressButtonClick}>Add Authorized Address</CustomAddButton>
 
       <CustomAddButton appearance="primary" onClick={formOnClick} disabled={vaultName === "" || threshold === 0}>
-        {vaultName !== "" ? "Edit Vault" : "Initialize Vault"}
+        {isEditMode ? "Edit Vault" : "Initialize Vault"}
       </CustomAddButton>
     </Wrapper>
   );

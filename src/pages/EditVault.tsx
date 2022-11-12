@@ -189,6 +189,7 @@ export const EditVault: React.FC<Props> = ({ account }) => {
       degradingPeriods={degradingPeriods}
       authorizedAddresses={authorizedAddresses}
       selectedValues={selectedValues}
+      isEditMode
       addNewSignatoryOnClick={addButtonClick}
       formOnClick={editVaultClick}
       addDegradingButtonClick={addDegradingButtonClick}
