@@ -85,7 +85,16 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
     const clonedDegradingPeriods = [...degradingPeriods];
 
     const currentData = clonedDegradingPeriods[index];
-    currentData.shared = value;
+
+    if (index === 0 && value > threshold) {
+      currentData.shared = threshold;
+    } else if (index === 1 && value > clonedDegradingPeriods[0].shared) {
+      currentData.shared = clonedDegradingPeriods[0].shared;
+    } else if (index === 2 && value > clonedDegradingPeriods[1].shared) {
+      currentData.shared = clonedDegradingPeriods[1].shared;
+    } else {
+      currentData.shared = value;
+    }
 
     setDegradingPeriods(clonedDegradingPeriods);
   };
@@ -132,8 +141,16 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
   const initializeVaultClick = async () => {
     setLoading(true);
+
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
+
+    if (!signatoriesAddress.every((e, i, a) => a.indexOf(e) === i)) {
+      toastr.error("Signatory addresses must be unique.");
+      setLoading(false);
+      return;
+    }
+
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
 
     const editedThreshold = threshold * 100;
@@ -180,6 +197,7 @@ export const CreateNewVault: React.FC<Props> = ({ account }) => {
 
     setLoading(false);
   };
+
   if (loading) {
     return <Loader backdrop content="Initializing vault..." vertical />;
   }

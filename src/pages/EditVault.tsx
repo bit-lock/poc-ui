@@ -87,6 +87,13 @@ export const EditVault: React.FC<Props> = ({ account }) => {
 
   const editVaultClick = async () => {
     setLoading(true);
+
+    if (!authorizedAddresses.every((e, i, a) => a.indexOf(e) === i)) {
+      toastr.error("Authorized Addresses must be unique.");
+      setLoading(false);
+      return;
+    }
+
     const web3Instance = new Web3Lib();
     const signatoriesAddress = signatories.map((signatory: SignatoryState) => signatory.address);
     const signatoriesShares = signatories.map((signatory: SignatoryState) => Math.floor(signatory.percent * 100));
@@ -158,7 +165,16 @@ export const EditVault: React.FC<Props> = ({ account }) => {
     const clonedDegradingPeriods = [...degradingPeriods];
 
     const currentData = clonedDegradingPeriods[index];
-    currentData.shared = value;
+
+    if (index === 0 && value > threshold) {
+      currentData.shared = threshold;
+    } else if (index === 1 && value > clonedDegradingPeriods[0].shared) {
+      currentData.shared = clonedDegradingPeriods[0].shared;
+    } else if (index === 2 && value > clonedDegradingPeriods[1].shared) {
+      currentData.shared = clonedDegradingPeriods[1].shared;
+    } else {
+      currentData.shared = value;
+    }
 
     setDegradingPeriods(clonedDegradingPeriods);
   };
