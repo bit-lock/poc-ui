@@ -103,6 +103,14 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     setLoading(false);
   };
 
+  const approveWithdrawal = async (vaultId: number, proposalId: number, signatories: string[]) => {
+    setLoading(true);
+    const web3Instance = new Web3Lib();
+    await web3Instance.approveWithdrawal(vaultId, proposalId, signatories, account);
+    await init();
+    setLoading(false);
+  };
+
   if (loading) {
     return <Loader backdrop content="Fetching requests..." vertical />;
   }

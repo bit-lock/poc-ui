@@ -115,4 +115,19 @@ export class Web3Lib {
       })
       .on("error", console.error);
   };
+
+  approveWithdrawal = async (vaultId: number, proposalId: number, sigList: string[], address: string): Promise<any> => {
+    const gasPrice = await this.web3.eth.getGasPrice();
+
+    const vaultFunction = this.contract.methods.approveWithdrawal(vaultId, proposalId, sigList);
+
+    const gasAmount = await vaultFunction.estimateGas({ from: address });
+
+    return vaultFunction
+      .send({ from: address, gasLimit: gasAmount, gasPrice })
+      .on("transactionHash", function (hash: string) {
+        toastr.success(hash, "Appromevent success.");
+      })
+      .on("error", console.error);
+  };
 }
