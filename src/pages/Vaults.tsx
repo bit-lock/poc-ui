@@ -4,6 +4,7 @@ import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
 import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
+import toastr from "toastr";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
 import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
@@ -194,6 +195,10 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   };
 
   const withdrawClick = async () => {
+    setLoading(true);
+
+    const web3Instance = new Web3Lib();
+
     // const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
     const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
     // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
@@ -205,9 +210,19 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     // console.log(signPreimages(privateKey, preimages));
 
+    const scriptPubkey = convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || ""));
+
+    try {
+      await web3Instance.initiateWithdrawal(123, scriptPubkey, amountSats, withdrawModalState.bitcoin?.fee || 0, account);
+    } catch (err: any) {
+      toastr.error(err.message);
+    }
+
     console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
     console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);
     console.log("Withdraw input amount", amountSats);
+
+    setLoading(false);
   };
 
   const allButtonClick = () => {
