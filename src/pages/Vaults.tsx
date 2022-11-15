@@ -34,6 +34,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
   const [withdrawModalState, setWithdrawModalState] = useState<{
     show: boolean;
+    vaultId?: number;
     address?: string;
     scriptPubkey?: string;
     errorMessage?: string;
@@ -213,14 +214,10 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     const scriptPubkey = convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || ""));
 
     try {
-      await web3Instance.initiateWithdrawal(123, scriptPubkey, amountSats, withdrawModalState.bitcoin?.fee || 0, account);
+      await web3Instance.initiateWithdrawal(withdrawModalState.vaultId || 0, "0x" + scriptPubkey, amountSats, withdrawModalState.bitcoin?.fee || 0, account);
     } catch (err: any) {
       toastr.error(err.message);
     }
-
-    console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
-    console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);
-    console.log("Withdraw input amount", amountSats);
 
     setLoading(false);
   };
@@ -363,7 +360,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                         <StyledButton
                           onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                             e.stopPropagation();
-                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin, vaultId: item.id });
                           }}
                           margin="0 0 0 0.5rem"
                         >
