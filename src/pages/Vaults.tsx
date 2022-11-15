@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
-import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
+import { Button, Grid, Input, InputGroup, List, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
 import toastr from "toastr";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
 import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
+import { UTXO } from "../lib/models/UTXO";
 import { Vault } from "../lib/models/Vault";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
@@ -47,6 +48,10 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   }>({
     show: false,
   });
+
+  const [addressIsNotEmpty, setAddressIsNotEmpty] = useState<boolean>(true);
+  const [utxoSets, setUtxoSets] = useState<UTXO[]>();
+  const [selectedUtxoIndexes, setSelectedUtxoIndexes] = useState<number[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 6000);
@@ -115,6 +120,16 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     init();
   }, [account, time]);
+
+  useEffect(() => {
+    if (addressIsNotEmpty) {
+      async function fetchData() {
+        const response = await fetchUtxos("tb1prkzak825qdg3ngem6jeyadg99dml0ppqkg7tz7n24eq0kduk86js5xc8a4");
+        setUtxoSets(response);
+      }
+      fetchData();
+    }
+  }, [addressIsNotEmpty]);
 
   const calculateWaitingConfirmCount = (signatories: Signatories) => {
     const currentData: string[] = signatories[2];
@@ -262,6 +277,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     }
   };
 
+  const selectUtxo = (index: number) => {
+    const currentList = [...selectedUtxoIndexes];
+    const findedIndex = currentList.findIndex((i: number) => i === index);
+    if (findedIndex !== -1) {
+      currentList.splice(findedIndex, 1);
+    } else {
+      currentList.push(index);
+    }
+    setSelectedUtxoIndexes(currentList);
+  };
+
   const renderWithdrawModal = () => {
     if (withdrawModalState.show) {
       return (
@@ -314,6 +340,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
+          {addressIsNotEmpty && utxoSets !== undefined && (
+            <List bordered>
+              {utxoSets.map((utxo: UTXO, index: number) => {
+                return (
+                  <ListItem key={index} onClick={() => selectUtxo(index)} background={selectedUtxoIndexes.findIndex((i: number) => i === index) !== -1 ? "#1a1d24" : "#3c3f43"}>
+                    Tx Id: {utxo.txId} Value: {utxo.value.toFixed(8)} Outspend Index: {utxo.vout}
+                  </ListItem>
+                );
+              })}
+            </List>
+          )}
         </Modal>
       );
     }
@@ -472,6 +509,7 @@ interface TextProps {
   fontWeight?: number;
   padding?: string;
   display?: string;
+  background?: string;
 }
 
 const Container = styled(Grid)`
@@ -549,6 +587,12 @@ const AmountInputContainer = styled.div`
     -webkit-appearance: none;
     margin: 0;
   }
+`;
+
+const ListItem = styled(List.Item)<TextProps>`
+  background: ${(props) => props.background};
+  color: white;
+  cursor: pointer;
 `;
 
 // const AllButton = styled(Button)`
