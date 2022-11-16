@@ -12,6 +12,7 @@ type Props = {
 export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   const [time, setTime] = useState(Date.now());
   const [loading, setLoading] = useState<boolean>(true);
+  const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [approveRequestList, setApproveRequestList] = useState<VaultState[]>([]);
   const [finalizeRequestList, setFinalizeRequestList] = useState<VaultState[]>([]);
 
@@ -88,31 +89,35 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   }, [init, time]);
 
   const approveSignatory = async (id: number) => {
-    setLoading(true);
+    setActionLoading(true);
     const web3Instance = new Web3Lib();
     await web3Instance.approveSignatory(id, "0x" + publicKey, account);
     await init();
-    setLoading(false);
+    setActionLoading(false);
   };
 
   const finalizeVault = async (id: number) => {
-    setLoading(true);
+    setActionLoading(true);
     const web3Instance = new Web3Lib();
     await web3Instance.finalizeVault(id, account);
     await init();
-    setLoading(false);
+    setActionLoading(false);
   };
 
   const approveWithdrawal = async (vaultId: number, proposalId: number, signatories: string[]) => {
-    setLoading(true);
+    setActionLoading(true);
     const web3Instance = new Web3Lib();
     await web3Instance.approveWithdrawal(vaultId, proposalId, signatories, account);
     await init();
-    setLoading(false);
+    setActionLoading(false);
   };
 
   if (loading) {
     return <Loader backdrop content="Fetching requests..." vertical />;
+  }
+
+  if (actionLoading) {
+    return <Loader backdrop content="Approve progressing..." vertical />;
   }
 
   return (

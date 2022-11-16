@@ -14,7 +14,6 @@ import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
-// import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
 
 const BITCOIN_PER_SATOSHI = 100000000;
 
@@ -30,7 +29,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalState, setModalState] = useState<{ show: boolean; data?: Signatories }>({ show: false });
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
   const [withdrawModalState, setWithdrawModalState] = useState<{
@@ -44,14 +42,13 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
       address: string;
       balance: number;
       fee: number;
+      utxos?: UTXO[];
     };
   }>({
     show: false,
   });
 
-  const [addressIsNotEmpty, setAddressIsNotEmpty] = useState<boolean>(true);
-  const [utxoSets, setUtxoSets] = useState<UTXO[]>();
-  const [selectedUtxoIndexes, setSelectedUtxoIndexes] = useState<number[]>([]);
+  const [selectedUserUtxoSets, setSelectedUserUtxoSets] = useState<UTXO[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 6000);
@@ -94,7 +91,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount, bitcoin: { address, balance, fee } });
+            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount, bitcoin: { address, balance, fee, utxos } });
           } else {
             accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount });
           }
@@ -107,7 +104,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             const balance = bitcoinBalanceCalculation(utxos);
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount, bitcoin: { address, balance, fee } });
+            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount, bitcoin: { address, balance, fee, utxos } });
           } else {
             accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount });
           }
@@ -120,16 +117,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     init();
   }, [account, time]);
-
-  useEffect(() => {
-    if (addressIsNotEmpty) {
-      async function fetchData() {
-        const response = await fetchUtxos("tb1prkzak825qdg3ngem6jeyadg99dml0ppqkg7tz7n24eq0kduk86js5xc8a4");
-        setUtxoSets(response);
-      }
-      fetchData();
-    }
-  }, [addressIsNotEmpty]);
 
   const calculateWaitingConfirmCount = (signatories: Signatories) => {
     const currentData: string[] = signatories[2];
@@ -277,15 +264,17 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     }
   };
 
-  const selectUtxo = (index: number) => {
-    const currentList = [...selectedUtxoIndexes];
-    const findedIndex = currentList.findIndex((i: number) => i === index);
+  const selectUtxo = (utxo: UTXO) => {
+    const currentList = [...selectedUserUtxoSets];
+    const findedIndex = currentList.findIndex((i: UTXO) => i.txId === utxo.txId);
+
     if (findedIndex !== -1) {
       currentList.splice(findedIndex, 1);
     } else {
-      currentList.push(index);
+      currentList.push(utxo);
     }
-    setSelectedUtxoIndexes(currentList);
+
+    setSelectedUserUtxoSets(currentList);
   };
 
   const renderWithdrawModal = () => {
@@ -340,12 +329,16 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
-          {addressIsNotEmpty && utxoSets !== undefined && (
+          {withdrawModalState.bitcoin?.utxos !== undefined && withdrawModalState.bitcoin?.utxos?.length > 0 && (
             <List bordered>
-              {utxoSets.map((utxo: UTXO, index: number) => {
+              {withdrawModalState.bitcoin?.utxos.map((utxo: UTXO, index: number) => {
                 return (
-                  <ListItem key={index} onClick={() => selectUtxo(index)} background={selectedUtxoIndexes.findIndex((i: number) => i === index) !== -1 ? "#1a1d24" : "#3c3f43"}>
-                    Tx Id: {utxo.txId} Value: {utxo.value.toFixed(8)} Outspend Index: {utxo.vout}
+                  <ListItem
+                    key={index}
+                    onClick={() => selectUtxo(utxo)}
+                    background={selectedUserUtxoSets.findIndex((i: UTXO) => i.txId === utxo.txId) !== -1 ? "#1a1d24" : "#3c3f43"}
+                  >
+                    Tx: {utxo.txId} <br /> Vout: {utxo.vout} <br /> Balance: {utxo.value.toFixed(8)}₿
                   </ListItem>
                 );
               })}

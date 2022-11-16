@@ -1,4 +1,5 @@
 import { Signatories } from "./Signatories";
+import { UTXO } from "./UTXO";
 import { Vault } from "./Vault";
 
 export type VaultState = {
@@ -11,5 +12,6 @@ export type VaultState = {
     address: string;
     balance: number;
     fee: number;
+    utxos?: UTXO[];
   };
 };
