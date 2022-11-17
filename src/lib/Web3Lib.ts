@@ -101,6 +101,14 @@ export class Web3Lib {
       .on("error", console.error);
   };
 
+  getWithdrawRequest = async (vaultId: number): Promise<string> => {
+    return this.contract.methods.getWithdrawRequest(vaultId, 1).call();
+  };
+
+  nextProposalId = async (vaultId: number): Promise<number> => {
+    return this.contract.methods.nextProposalId(vaultId).call();
+  };
+
   initiateWithdrawal = async (vaultId: number, scriptPubkey: string, amount: number, fee: number, address: string): Promise<string> => {
     const request = [scriptPubkey, amount, fee];
     const vaultFunction = this.contract.methods.initiateWithdrawal(vaultId, request);
