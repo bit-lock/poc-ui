@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
-import { Button, Grid, Input, InputGroup, List, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
+import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
 import toastr from "toastr";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
@@ -547,11 +547,11 @@ const AmountInputContainer = styled.div`
   }
 `;
 
-const ListItem = styled(List.Item)<TextProps>`
-  background: ${(props) => props.background};
-  color: white;
-  cursor: pointer;
-`;
+// const ListItem = styled(List.Item)<TextProps>`
+//   background: ${(props) => props.background};
+//   color: white;
+//   cursor: pointer;
+// `;
 
 // const AllButton = styled(Button)`
 //   font-size: 0.87rem;

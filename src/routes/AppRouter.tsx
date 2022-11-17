@@ -15,7 +15,6 @@ import { Header } from "../components/Header";
 const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
 export const AppRouter = (): JSX.Element => {
-  const [signature, setSignature] = useState<string>("");
   const [privateKey, setPrivateKey] = useState<string>("");
   const [publicKey, setPublicKey] = useState<string>("");
   const [account, setAccount] = useState<string>("");
@@ -55,7 +54,6 @@ export const AppRouter = (): JSX.Element => {
 
       const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
 
-      setSignature(withoutPrefixSignature);
       setPrivateKey(prvKey);
       setPublicKey(keys.publicKey.hex);
       setAccount(account);
