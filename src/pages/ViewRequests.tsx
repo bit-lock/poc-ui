@@ -111,17 +111,25 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
     preWithdrawRequestList.forEach((pwr: VaultState) => {
       if (pwr.proposalIds) {
         for (let i = 1; i <= pwr.proposalIds?.length; i++) {
-          getWithdrawRequests.push({ data: pwr, promise: web3Instance.getWithdrawRequest(pwr.id, i), proposalId: i });
+          getWithdrawRequests.push({
+            proposalId: i,
+            data: pwr,
+            promise: web3Instance.getWithdrawRequest(pwr.id, i),
+            detailPromise: web3Instance.getWithdrawRequestSigs(pwr.id, i, account),
+          });
         }
       }
     });
 
     const withdrawDetails = await Promise.all(getWithdrawRequests.map((gwp: any) => gwp.promise));
+    const withdrawSigDetails = await Promise.all(getWithdrawRequests.map((gwp: any) => gwp.detailPromise));
 
     let finalWithdrawRequest: any = [];
 
     getWithdrawRequests.forEach((gwr: any, index: number) => {
-      finalWithdrawRequest.push({ data: gwr.data, proposal: withdrawDetails[index], proposalId: gwr.proposalId });
+      if (withdrawSigDetails[index].length === 0) {
+        finalWithdrawRequest.push({ data: gwr.data, proposal: withdrawDetails[index], proposalId: gwr.proposalId });
+      }
     });
 
     setWithdrawRequestList(finalWithdrawRequest);
