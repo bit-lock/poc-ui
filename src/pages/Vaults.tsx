@@ -9,11 +9,11 @@ import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
 import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
 import { UTXO } from "../lib/models/UTXO";
-import { Vault } from "../lib/models/Vault";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
+import { calculateSignCount } from "../lib/utils";
 
 type Props = {
   account: string;
@@ -131,30 +131,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const handleOpen = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, signatories: Signatories) => {
     event.stopPropagation();
     setModalState({ show: true, data: signatories });
-  };
-
-  const calculateSignCount = (vault: Vault, signatories: Signatories) => {
-    const threshold = Number(vault.threshold);
-    const signatoryThresholds = signatories[1].map((data) => Number(data));
-
-    const orderedSignatoryThresholds = signatoryThresholds.sort((a, b) => a - b);
-
-    let currentThresholdCount = 0;
-    let calculatedThreshold = 0;
-    let i = 0;
-
-    while (i < signatoryThresholds.length) {
-      calculatedThreshold += orderedSignatoryThresholds[i];
-
-      if (calculatedThreshold >= threshold) {
-        currentThresholdCount = i + 1;
-        break;
-      } else {
-        i++;
-      }
-    }
-
-    return currentThresholdCount;
   };
 
   const renderSignatoryDetailModal = () => {

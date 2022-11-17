@@ -1,16 +1,20 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
-import { BITCOIN_PER_SATOSHI } from "../lib/bitcoin/utils";
+import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
+import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
+import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, fetchUtxos } from "../lib/bitcoin/utils";
 import { VaultState } from "../lib/models/VaultState";
+import { calculateSignCount } from "../lib/utils";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
   account: string;
   publicKey: string;
+  privateKey: string;
 };
 
-export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
+export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }) => {
   const [time, setTime] = useState(Date.now());
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
@@ -144,20 +148,28 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     setActionLoading(false);
   };
 
-  const approveWithdrawal = async (vaultId: number, proposalId: number, signatories: string[]) => {
+  const approveWithdrawal = async (data: any, proposalId: number) => {
     setActionLoading(true);
     const web3Instance = new Web3Lib();
 
-    //  const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
-    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
-    // temp
-    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
+    const { address, script } = bitcoinTemplateMaker(Number(data.data.vault.threshold), data.data.signatories);
+    const utxos = await fetchUtxos(address);
+    const balances = bitcoinBalanceCalculation(utxos);
+    const vaultBalanceSats = balances * BITCOIN_PER_SATOSHI;
 
-    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
+    const minimumSignatoryCount = calculateSignCount(data.data.vault, data.data.signatories);
 
-    // console.log(signPreimages(privateKey, preimages));
+    const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-    await web3Instance.approveWithdrawal(vaultId, proposalId, signatories, account);
+    const amountSats = Number(data.proposal.amount);
+
+    const feeGap = vaultBalanceSats - amountSats - fee;
+
+    const preimages: string[] = calculateSighashPreimage(utxos, feeGap, address, data.proposal.scriptPubkey.substring(2), amountSats, script.substring(2));
+
+    const signs = signPreimages(privateKey, preimages).map((res) => "0x" + res + "00");
+    console.log(signs);
+    await web3Instance.approveWithdrawal(data.data.id, proposalId, signs, account);
     await init();
     setActionLoading(false);
   };
@@ -237,7 +249,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                               active
                               text_color="blue"
                               onClick={() => {
-                                approveWithdrawal(withdraw.data.id, withdraw.proposalId, [withdraw.proposal.scriptPubkey]);
+                                approveWithdrawal(withdraw, withdraw.proposalId);
                               }}
                             >
                               Approve Withdraw
