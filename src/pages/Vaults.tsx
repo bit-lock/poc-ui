@@ -4,17 +4,16 @@ import QRCode from "react-qr-code";
 import { useNavigate } from "react-router-dom";
 import { Button, Grid, Input, InputGroup, Loader, Modal, Panel, Row, Tooltip, Whisper } from "rsuite";
 import styled from "styled-components";
+import toastr from "toastr";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
-import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
-import { Vault } from "../lib/models/Vault";
+import { UTXO } from "../lib/models/UTXO";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
-// import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
-
-const BITCOIN_PER_SATOSHI = 100000000;
+import { calculateSignCount } from "../lib/utils";
 
 type Props = {
   account: string;
@@ -28,11 +27,11 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
   const [vaultList, setVaultList] = useState<VaultState[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [modalState, setModalState] = useState<{ show: boolean; data?: Signatories }>({ show: false });
   const [depositModalState, setDepositModalState] = useState<{ show: boolean; data?: string }>({ show: false });
   const [withdrawModalState, setWithdrawModalState] = useState<{
     show: boolean;
+    vaultId?: number;
     address?: string;
     scriptPubkey?: string;
     errorMessage?: string;
@@ -41,10 +40,13 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
       address: string;
       balance: number;
       fee: number;
+      utxos?: UTXO[];
     };
   }>({
     show: false,
   });
+
+  // const [selectedUserUtxoSets, setSelectedUserUtxoSets] = useState<UTXO[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 6000);
@@ -87,7 +89,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount, bitcoin: { address, balance, fee } });
+            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount, bitcoin: { address, balance, fee, utxos } });
           } else {
             accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: true, minimumSignatoryCount });
           }
@@ -100,7 +102,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             const balance = bitcoinBalanceCalculation(utxos);
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount, bitcoin: { address, balance, fee } });
+            accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount, bitcoin: { address, balance, fee, utxos } });
           } else {
             accountVaultList.push({ id: z, vault: currentVault, signatories: signatories[z], isMyOwner: false, minimumSignatoryCount });
           }
@@ -129,30 +131,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   const handleOpen = (event: React.MouseEvent<HTMLDivElement, MouseEvent>, signatories: Signatories) => {
     event.stopPropagation();
     setModalState({ show: true, data: signatories });
-  };
-
-  const calculateSignCount = (vault: Vault, signatories: Signatories) => {
-    const threshold = Number(vault.threshold);
-    const signatoryThresholds = signatories[1].map((data) => Number(data));
-
-    const orderedSignatoryThresholds = signatoryThresholds.sort((a, b) => a - b);
-
-    let currentThresholdCount = 0;
-    let calculatedThreshold = 0;
-    let i = 0;
-
-    while (i < signatoryThresholds.length) {
-      calculatedThreshold += orderedSignatoryThresholds[i];
-
-      if (calculatedThreshold >= threshold) {
-        currentThresholdCount = i + 1;
-        break;
-      } else {
-        i++;
-      }
-    }
-
-    return currentThresholdCount;
   };
 
   const renderSignatoryDetailModal = () => {
@@ -194,20 +172,21 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   };
 
   const withdrawClick = async () => {
-    // const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
+    setLoading(true);
+
+    const web3Instance = new Web3Lib();
+
     const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
-    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
 
-    // temp
-    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
+    const scriptPubkey = convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || ""));
 
-    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
+    try {
+      await web3Instance.initiateWithdrawal(withdrawModalState.vaultId || 0, "0x" + scriptPubkey, amountSats, withdrawModalState.bitcoin?.fee || 0, account);
+    } catch (err: any) {
+      toastr.error(err.message);
+    }
 
-    // console.log(signPreimages(privateKey, preimages));
-
-    console.log("Withdraw ScriptPubkey", convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || "")));
-    console.log("Withdraw fee", withdrawModalState.bitcoin?.fee);
-    console.log("Withdraw input amount", amountSats);
+    setLoading(false);
   };
 
   const allButtonClick = () => {
@@ -218,6 +197,19 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     if (allAmount < 0) allAmount = 0;
     setWithdrawModalState({ ...withdrawModalState, amount: allAmount });
   };
+
+  // const selectUtxo = (utxo: UTXO) => {
+  //   const currentList = [...selectedUserUtxoSets];
+  //   const findedIndex = currentList.findIndex((i: UTXO) => i.txId === utxo.txId);
+
+  //   if (findedIndex !== -1) {
+  //     currentList.splice(findedIndex, 1);
+  //   } else {
+  //     currentList.push(utxo);
+  //   }
+
+  //   setSelectedUserUtxoSets(currentList);
+  // };
 
   const renderDepositModal = () => {
     if (depositModalState.data) {
@@ -298,10 +290,30 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               All ₿
             </StyledButton>
 
-            <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0">
+            <StyledButton
+              onClick={withdrawClick}
+              padding="0.5rem"
+              margin="1rem 0 0 0"
+              disabled={!withdrawModalState.amount || !withdrawModalState.address || withdrawModalState.errorMessage}
+            >
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
+          {/* {withdrawModalState.bitcoin?.utxos !== undefined && withdrawModalState.bitcoin?.utxos?.length > 0 && (
+            <List bordered>
+              {withdrawModalState.bitcoin?.utxos.map((utxo: UTXO, index: number) => {
+                return (
+                  <ListItem
+                    key={index}
+                    onClick={() => selectUtxo(utxo)}
+                    background={selectedUserUtxoSets.findIndex((i: UTXO) => i.txId === utxo.txId) !== -1 ? "#1a1d24" : "#3c3f43"}
+                  >
+                    Tx: {utxo.txId} <br /> Vout: {utxo.vout} <br /> Balance: {utxo.value.toFixed(8)}₿
+                  </ListItem>
+                );
+              })}
+            </List>
+          )} */}
         </Modal>
       );
     }
@@ -348,7 +360,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                         <StyledButton
                           onClick={(e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
                             e.stopPropagation();
-                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin });
+                            setWithdrawModalState({ show: true, bitcoin: item.bitcoin, vaultId: item.id });
                           }}
                           margin="0 0 0 0.5rem"
                         >
@@ -460,6 +472,7 @@ interface TextProps {
   fontWeight?: number;
   padding?: string;
   display?: string;
+  background?: string;
 }
 
 const Container = styled(Grid)`
@@ -538,6 +551,12 @@ const AmountInputContainer = styled.div`
     margin: 0;
   }
 `;
+
+// const ListItem = styled(List.Item)<TextProps>`
+//   background: ${(props) => props.background};
+//   color: white;
+//   cursor: pointer;
+// `;
 
 // const AllButton = styled(Button)`
 //   font-size: 0.87rem;

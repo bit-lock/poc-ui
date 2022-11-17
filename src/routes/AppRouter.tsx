@@ -15,8 +15,7 @@ import { Header } from "../components/Header";
 const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
 export const AppRouter = (): JSX.Element => {
-  const [signature, setSignature] = useState<string>("");
-  const [privateKey, setPrivateKey] = useState<string>();
+  const [privateKey, setPrivateKey] = useState<string>("");
   const [publicKey, setPublicKey] = useState<string>("");
   const [account, setAccount] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
@@ -55,7 +54,6 @@ export const AppRouter = (): JSX.Element => {
 
       const keys = crypto.schnorrCreatePublicKey(WizData.fromHex(prvKey));
 
-      setSignature(withoutPrefixSignature);
       setPrivateKey(prvKey);
       setPublicKey(keys.publicKey.hex);
       setAccount(account);
@@ -81,7 +79,7 @@ export const AppRouter = (): JSX.Element => {
         },
         {
           path: ROUTE_PATH.VAULTS,
-          element: <Vaults account={account} privateKey={privateKey || ""} />,
+          element: <Vaults account={account} privateKey={privateKey} />,
         },
         {
           path: ROUTE_PATH.CREATE_NEW_VAULT,
@@ -89,7 +87,7 @@ export const AppRouter = (): JSX.Element => {
         },
         {
           path: ROUTE_PATH.VIEW_REQUESTS,
-          element: <ViewRequests account={account} publicKey={publicKey} />,
+          element: <ViewRequests account={account} publicKey={publicKey} privateKey={privateKey} />,
         },
         {
           path: ROUTE_PATH.EDIT_SIGNATORIES,

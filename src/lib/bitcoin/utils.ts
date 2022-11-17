@@ -155,3 +155,5 @@ export const convertTo35Byte = (hex: string) => {
 
   return hex + "00".repeat(35 - hexByteLegth);
 };
+
+export const BITCOIN_PER_SATOSHI = 100000000;
