@@ -290,7 +290,12 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               All ₿
             </StyledButton>
 
-            <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0">
+            <StyledButton
+              onClick={withdrawClick}
+              padding="0.5rem"
+              margin="1rem 0 0 0"
+              disabled={!withdrawModalState.amount || !withdrawModalState.address || withdrawModalState.errorMessage}
+            >
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
