@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
+import { BITCOIN_PER_SATOSHI } from "../lib/bitcoin/utils";
 import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 
@@ -15,6 +16,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   const [actionLoading, setActionLoading] = useState<boolean>(false);
   const [approveRequestList, setApproveRequestList] = useState<VaultState[]>([]);
   const [finalizeRequestList, setFinalizeRequestList] = useState<VaultState[]>([]);
+  const [withdrawRequestList, setWithdrawRequestList] = useState<any>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 60000);
@@ -54,6 +56,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     }
 
     const notFinalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x00");
+    const finalizedVaults = accountVaultList.filter((data) => data.vault.status === "0x01");
 
     const approveList: VaultState[] = notFinalizedVaults.filter((currentData) => {
       const signatoryAddressList = currentData.signatories[0];
@@ -81,6 +84,43 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
     });
 
     setFinalizeRequestList(waitingFinalizeList);
+
+    const finalizedVaultPromises = finalizedVaults.map((fv) => web3Instance.nextProposalId(fv.id));
+
+    const nextProposalIds = await Promise.all(finalizedVaultPromises);
+
+    let preWithdrawRequestList: VaultState[] = [];
+
+    finalizedVaults.forEach((fv, index) => {
+      if (Number(nextProposalIds[index]) > 0) {
+        let proposalIds: number[] = [];
+        for (let i = 1; i <= nextProposalIds[index]; i++) {
+          proposalIds.push(Number(i));
+        }
+
+        preWithdrawRequestList.push({ ...fv, proposalIds });
+      }
+    });
+
+    let getWithdrawRequests: any = [];
+
+    preWithdrawRequestList.forEach((pwr: VaultState) => {
+      if (pwr.proposalIds) {
+        for (let i = 1; i <= pwr.proposalIds?.length; i++) {
+          getWithdrawRequests.push({ data: pwr, promise: web3Instance.getWithdrawRequest(pwr.id, i), proposalId: i });
+        }
+      }
+    });
+
+    const withdrawDetails = await Promise.all(getWithdrawRequests.map((gwp: any) => gwp.promise));
+
+    let finalWithdrawRequest: any = [];
+
+    getWithdrawRequests.forEach((gwr: any, index: number) => {
+      finalWithdrawRequest.push({ data: gwr.data, proposal: withdrawDetails[index], proposalId: gwr.proposalId });
+    });
+
+    setWithdrawRequestList(finalWithdrawRequest);
     setLoading(false);
   }, [account]);
 
@@ -107,6 +147,16 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   const approveWithdrawal = async (vaultId: number, proposalId: number, signatories: string[]) => {
     setActionLoading(true);
     const web3Instance = new Web3Lib();
+
+    //  const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
+    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
+    // temp
+    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
+
+    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
+
+    // console.log(signPreimages(privateKey, preimages));
+
     await web3Instance.approveWithdrawal(vaultId, proposalId, signatories, account);
     await init();
     setActionLoading(false);
@@ -119,6 +169,8 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
   if (actionLoading) {
     return <Loader backdrop content="Approve progressing..." vertical />;
   }
+
+  console.log(withdrawRequestList);
 
   return (
     <Container>
@@ -168,7 +220,37 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey }) => {
                   </RequestList>
                 </>
               )}
-              {approveRequestList.length === 0 && finalizeRequestList.length === 0 && <Text fontSize="18px">You don't have any request</Text>}
+
+              {withdrawRequestList.length !== 0 && (
+                <>
+                  <Text>Withdraw Requests</Text>
+                  <RequestList>
+                    {withdrawRequestList.map((withdraw: any, index: number) => {
+                      return (
+                        <RequestItem key={"withdraw" + index}>
+                          <Text>
+                            Vault Name: {withdraw.data.vault.name} , Amount : {withdraw.proposal.amount / BITCOIN_PER_SATOSHI}
+                          </Text>
+                          <ButtonGroup>
+                            <StyledButton
+                              appearance="link"
+                              active
+                              text_color="blue"
+                              onClick={() => {
+                                approveWithdrawal(withdraw.data.id, withdraw.proposalId, [withdraw.proposal.scriptPubkey]);
+                              }}
+                            >
+                              Approve Withdraw
+                            </StyledButton>
+                          </ButtonGroup>
+                        </RequestItem>
+                      );
+                    })}
+                  </RequestList>
+                </>
+              )}
+
+              {approveRequestList.length === 0 && finalizeRequestList.length === 0 && withdrawRequestList.length === 0 && <Text fontSize="18px">You don't have any request</Text>}
             </Panel>
           </StyledBoxItem>
         </StyledBox>

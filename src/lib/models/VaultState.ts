@@ -8,6 +8,7 @@ export type VaultState = {
   signatories: Signatories;
   vault: Vault;
   minimumSignatoryCount: number;
+  proposalIds?: number[];
   bitcoin?: {
     address: string;
     balance: number;

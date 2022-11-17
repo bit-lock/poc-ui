@@ -101,12 +101,16 @@ export class Web3Lib {
       .on("error", console.error);
   };
 
-  getWithdrawRequest = async (vaultId: number): Promise<string> => {
-    return this.contract.methods.getWithdrawRequest(vaultId, 1).call();
-  };
-
   nextProposalId = async (vaultId: number): Promise<number> => {
     return this.contract.methods.nextProposalId(vaultId).call();
+  };
+
+  getWithdrawRequest = async (vaultId: number, proposalId: number): Promise<string> => {
+    return this.contract.methods.getWithdrawRequest(vaultId, proposalId).call();
+  };
+
+  getWithdrawRequestSigs = async (vaultId: number, proposalId: number, signatoryAddress: string) => {
+    return this.contract.methods.getWithdrawRequestSigs(vaultId, proposalId, signatoryAddress).call();
   };
 
   initiateWithdrawal = async (vaultId: number, scriptPubkey: string, amount: number, fee: number, address: string): Promise<string> => {

@@ -6,7 +6,7 @@ import { Button, Grid, Input, InputGroup, List, Loader, Modal, Panel, Row, Toolt
 import styled from "styled-components";
 import toastr from "toastr";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
-import { bitcoinBalanceCalculation, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, convertTo35Byte, createDestinationPubkey, fetchUtxos } from "../lib/bitcoin/utils";
 import { Signatories } from "../lib/models/Signatories";
 import { UTXO } from "../lib/models/UTXO";
 import { Vault } from "../lib/models/Vault";
@@ -14,8 +14,6 @@ import { VaultState } from "../lib/models/VaultState";
 import { Web3Lib } from "../lib/Web3Lib";
 import CopyIcon from "../Svg/Icons/Copy";
 import { utils } from "@script-wiz/lib-core";
-
-const BITCOIN_PER_SATOSHI = 100000000;
 
 type Props = {
   account: string;
@@ -48,7 +46,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     show: false,
   });
 
-  const [selectedUserUtxoSets, setSelectedUserUtxoSets] = useState<UTXO[]>([]);
+  // const [selectedUserUtxoSets, setSelectedUserUtxoSets] = useState<UTXO[]>([]);
 
   useEffect(() => {
     const interval = setInterval(() => setTime(Date.now()), 6000);
@@ -202,16 +200,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     const web3Instance = new Web3Lib();
 
-    // const vaultBalanceSats = (withdrawModalState.bitcoin?.balance || 0) * BITCOIN_PER_SATOSHI;
     const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
-    // const feeGap = vaultBalanceSats - amountSats - (withdrawModalState.bitcoin?.fee || 0);
-
-    // temp
-    // const utxos = await fetchUtxos(withdrawModalState.bitcoin?.address || "");
-
-    // const preimages: string[] = calculateSighashPreimage(utxos, feeGap, withdrawModalState.bitcoin?.address || "", withdrawModalState?.scriptPubkey || "", amountSats, "");
-
-    // console.log(signPreimages(privateKey, preimages));
 
     const scriptPubkey = convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || ""));
 
@@ -232,6 +221,19 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     if (allAmount < 0) allAmount = 0;
     setWithdrawModalState({ ...withdrawModalState, amount: allAmount });
   };
+
+  // const selectUtxo = (utxo: UTXO) => {
+  //   const currentList = [...selectedUserUtxoSets];
+  //   const findedIndex = currentList.findIndex((i: UTXO) => i.txId === utxo.txId);
+
+  //   if (findedIndex !== -1) {
+  //     currentList.splice(findedIndex, 1);
+  //   } else {
+  //     currentList.push(utxo);
+  //   }
+
+  //   setSelectedUserUtxoSets(currentList);
+  // };
 
   const renderDepositModal = () => {
     if (depositModalState.data) {
@@ -262,19 +264,6 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
         </Modal>
       );
     }
-  };
-
-  const selectUtxo = (utxo: UTXO) => {
-    const currentList = [...selectedUserUtxoSets];
-    const findedIndex = currentList.findIndex((i: UTXO) => i.txId === utxo.txId);
-
-    if (findedIndex !== -1) {
-      currentList.splice(findedIndex, 1);
-    } else {
-      currentList.push(utxo);
-    }
-
-    setSelectedUserUtxoSets(currentList);
   };
 
   const renderWithdrawModal = () => {
@@ -329,7 +318,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
-          {withdrawModalState.bitcoin?.utxos !== undefined && withdrawModalState.bitcoin?.utxos?.length > 0 && (
+          {/* {withdrawModalState.bitcoin?.utxos !== undefined && withdrawModalState.bitcoin?.utxos?.length > 0 && (
             <List bordered>
               {withdrawModalState.bitcoin?.utxos.map((utxo: UTXO, index: number) => {
                 return (
@@ -343,7 +332,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                 );
               })}
             </List>
-          )}
+          )} */}
         </Modal>
       );
     }
