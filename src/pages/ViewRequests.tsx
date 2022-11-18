@@ -99,7 +99,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
       if (Number(nextProposalIds[index]) > 0) {
         let proposalIds: number[] = [];
         for (let i = 1; i <= nextProposalIds[index]; i++) {
-          proposalIds.push(Number(i));
+          proposalIds.push(Number(i) - 1);
         }
 
         preWithdrawRequestList.push({ ...fv, proposalIds });
@@ -110,12 +110,12 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
 
     preWithdrawRequestList.forEach((pwr: VaultState) => {
       if (pwr.proposalIds) {
-        for (let i = 1; i <= pwr.proposalIds?.length; i++) {
+        for (let i = 0; i < pwr.proposalIds?.length; i++) {
           getWithdrawRequests.push({
-            proposalId: i - 1,
+            proposalId: i,
             data: pwr,
-            promise: web3Instance.getWithdrawRequest(pwr.id, i - 1),
-            detailPromise: web3Instance.getWithdrawRequestSigs(pwr.id, i - 1, account),
+            promise: web3Instance.getWithdrawRequest(pwr.id, i),
+            detailPromise: web3Instance.getWithdrawRequestSigs(pwr.id, i, account),
           });
         }
       }
