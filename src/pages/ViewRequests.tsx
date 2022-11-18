@@ -169,7 +169,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
 
     const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
 
-    const amountSats = Number(data.proposal.amount);
+    const amountSats = Math.ceil(Number(data.proposal.amount));
 
     const feeGap = vaultBalanceSats - amountSats - fee;
 

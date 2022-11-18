@@ -176,7 +176,9 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     const web3Instance = new Web3Lib();
 
-    const amountSats = (withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI;
+    const amountSats = Math.ceil((withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI);
+
+    console.log("2", amountSats);
 
     const scriptPubkey = convertTo35Byte(utils.compactSizeVarIntData(withdrawModalState.scriptPubkey || ""));
 
