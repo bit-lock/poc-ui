@@ -175,8 +175,8 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
 
     const preimages: string[] = calculateSighashPreimage(utxos, feeGap, address, data.proposal.scriptPubkey.substring(2), amountSats, script.substring(2));
 
-    const signs = signPreimages(privateKey, preimages).map((res) => "0x" + res + "00");
-    console.log(signs);
+    const signs = signPreimages(privateKey, preimages).map((res) => "0x" + res);
+
     await web3Instance.approveWithdrawal(data.data.id, proposalId, signs, account);
     await init();
     setActionLoading(false);
