@@ -114,8 +114,8 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
           getWithdrawRequests.push({
             proposalId: i - 1,
             data: pwr,
-            promise: web3Instance.getWithdrawRequest(pwr.id, i),
-            detailPromise: web3Instance.getWithdrawRequestSigs(pwr.id, i, account),
+            promise: web3Instance.getWithdrawRequest(pwr.id, i - 1),
+            detailPromise: web3Instance.getWithdrawRequestSigs(pwr.id, i - 1, account),
           });
         }
       }
