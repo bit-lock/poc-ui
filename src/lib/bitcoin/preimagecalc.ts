@@ -20,47 +20,47 @@ export const calculateSighashPreimage = (utxoSet: UTXO[], feeGap: number, vaultA
 
     value += "00000200000000000000";
 
-    // console.log("1", value);
+    // // console.log("1", value);
 
     value += calculatePrevouts(utxoSet); //sha prevouts
 
-    // console.log("2", calculatePrevouts(utxoSet));
+    // console.log("prevouts", calculatePrevouts(utxoSet));
 
     value += calculateShaAmounts(utxoSet); //prevvaules
 
-    // console.log("3", calculateShaAmounts(utxoSet));
+    // console.log("sha amounts", calculateShaAmounts(utxoSet));
 
     value += calculateScriptPubkeys(utxoSet, vaultScriptPubkey); // sha prevscriptpubkeys
 
-    // console.log("4", calculateScriptPubkeys(utxoSet, vaultScriptPubkey));
+    // console.log("script pub key", calculateScriptPubkeys(utxoSet, vaultScriptPubkey));
 
     value += calculateShaSequences(utxoSet); // sha sequences
 
-    // console.log("5", calculateShaSequences(utxoSet));
+    // console.log("sha sequences", calculateShaSequences(utxoSet));
 
     value += calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, destinationScriptPubkey, amount); //sha outs
 
-    // console.log("6", calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, destinationScriptPubkey, amount));
+    // console.log("outputs", calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, destinationScriptPubkey, amount));
 
     value += "02"; //spend type
 
-    // console.log("7", "02");
+    // // console.log("7", "02");
 
     value += convertion.convert32(WizData.fromNumber(index)).hex; // input index
 
-    // console.log("8", convertion.convert32(WizData.fromNumber(index)).hex);
+    // console.log("index", convertion.convert32(WizData.fromNumber(index)).hex);
 
     value += taproot.tapLeaf(WizData.fromHex(script), "c0"); //tapleaf
 
-    // console.log("9", taproot.tapLeaf(WizData.fromHex(script), "c0"));
+    // console.log("tapleaf result", taproot.tapLeaf(WizData.fromHex(script), "c0"));
 
     value += "00"; //key version
 
-    // console.log("10", "00");
+    // // console.log("10", "00");
 
     value += "ffffffff"; //codesep position
 
-    // console.log("11", "ffffffff");
+    // // console.log("11", "ffffffff");
 
     sighashPreimage.push(value);
   });
@@ -79,7 +79,7 @@ export const calculatePrevouts = (utxoSet: UTXO[]) => {
     hashInputs += WizData.fromHex(hexLE(input.txId) + vout).hex;
   });
 
-  // console.log("prevouts", hashInputs);
+  // // console.log("prevouts", hashInputs);
 
   return crypto.sha256(WizData.fromHex(hashInputs)).toString();
 };
@@ -91,7 +91,7 @@ export const calculateShaAmounts = (utxoSet: UTXO[]) => {
     inputAmounts += convertion.numToLE64(WizData.fromNumber(Number(input.value) * 100000000)).hex;
   });
 
-  // console.log("sha amoutns", inputAmounts);
+  // // console.log("sha amoutns", inputAmounts);
 
   return crypto.sha256(WizData.fromHex(inputAmounts)).toString();
 };
@@ -103,7 +103,7 @@ export const calculateScriptPubkeys = (utxoSet: UTXO[], scriptPubkey: string) =>
     inputScriptPubkeys += utils.compactSizeVarIntData(scriptPubkey);
   });
 
-  // console.log("script pub keys", inputScriptPubkeys);
+  // // console.log("script pub keys", inputScriptPubkeys);
 
   return crypto.sha256(WizData.fromHex(inputScriptPubkeys)).toString();
 };
@@ -112,10 +112,10 @@ export const calculateShaSequences = (utxoSet: UTXO[]) => {
   let inputSequences = "";
 
   utxoSet.forEach(() => {
-    inputSequences += "01000000";
+    inputSequences += "00000000";
   });
 
-  // console.log("sequences", inputSequences);
+  // // console.log("sequences", inputSequences);
 
   return crypto.sha256(WizData.fromHex(inputSequences)).toString();
 };
@@ -124,16 +124,22 @@ export const calculateShaOutputs = (feeGap: number, hasChange: boolean, vaultScr
   let outputs = "";
 
   const destinationAmount = convertion.numToLE64(WizData.fromNumber(Number(amount))).hex;
-
+  // console.log("destinationamount", destinationAmount);
   outputs += destinationAmount;
 
-  outputs += utils.compactSizeVarIntData(destinationScriptPubkey);
+  outputs += destinationScriptPubkey;
+  // console.log("destinationScriptPubkey", destinationScriptPubkey);
 
   if (hasChange) {
     const feeGapAmount = convertion.numToLE64(WizData.fromNumber(Number(feeGap))).hex;
 
     outputs += feeGapAmount;
+
+    // console.log("feeGapAmount", feeGapAmount);
+
     outputs += utils.compactSizeVarIntData(vaultScriptPubkey);
+
+    // console.log("vaultScriptPubkey", utils.compactSizeVarIntData(vaultScriptPubkey));
   }
 
   // console.log("line 100 : ", outputs);
@@ -143,7 +149,10 @@ export const calculateShaOutputs = (feeGap: number, hasChange: boolean, vaultScr
 
 export const signPreimages = (privateKey: string, preImages: string[]) => {
   const signs = preImages.map((preImage) => {
-    return crypto.schnorrSign(WizData.fromHex(preImage), WizData.fromHex(privateKey)).sign.hex;
+    // console.log("preImage", preImage);
+    const tapSighashResult = taproot.tagHash("TapSighash", WizData.fromHex(preImage));
+    // console.log("tapSighashResult", tapSighashResult);
+    return crypto.schnorrSign(WizData.fromHex(tapSighashResult), WizData.fromHex(privateKey)).sign.hex;
   });
 
   return signs;

@@ -84,6 +84,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
           if (currentVault.status === "0x01") {
             const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
+
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
 
@@ -98,6 +99,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
           if (currentVault.status === "0x01") {
             const { address, script } = bitcoinTemplateMaker(Number(currentVault.threshold), signatories[z]);
+
             const utxos = await fetchUtxos(address);
             const balance = bitcoinBalanceCalculation(utxos);
             const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));

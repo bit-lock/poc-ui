@@ -26,7 +26,7 @@ export const fetchUtxos = async (address: string): Promise<UTXO[]> => {
     toastr.error(err.response.data);
   }
 
-  const confirmedTxs = allTxs.filter((tx) => tx.status.confirmed);
+  const confirmedTxs = allTxs;
 
   if (confirmedTxs.length > 0) {
     const myPromises = confirmedTxs.map((tx) => {

@@ -165,18 +165,14 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
     const balances = bitcoinBalanceCalculation(utxos);
     const vaultBalanceSats = balances * BITCOIN_PER_SATOSHI;
 
-    const minimumSignatoryCount = calculateSignCount(data.data.vault, data.data.signatories);
-
-    const fee = await calculateTxFees(utxos, minimumSignatoryCount, script.substring(2));
-
     const amountSats = Math.ceil(Number(data.proposal.amount));
 
-    const feeGap = vaultBalanceSats - amountSats - fee;
+    const feeGap = vaultBalanceSats - amountSats - data.proposal.fee;
 
     const preimages: string[] = calculateSighashPreimage(utxos, feeGap, address, data.proposal.scriptPubkey.substring(2), amountSats, script.substring(2));
 
     const signs = signPreimages(privateKey, preimages).map((res) => "0x" + res);
-
+    console.log(signs);
     await web3Instance.approveWithdrawal(data.data.id, proposalId, signs, account);
     await init();
     setActionLoading(false);
