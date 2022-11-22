@@ -276,7 +276,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           </Modal.Header>
           <Modal.Body>
             <Text padding="0.3rem" display="block">
-              Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿{" "}
+              Bitcoin Balance : {withdrawModalState.bitcoin?.balance.toFixed(8)}₿{" "}
             </Text>
             <StyledInputGroup>
               <Input
@@ -408,7 +408,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
                       <>
-                        <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                        <Text>Balance : {item.bitcoin?.balance.toFixed(8)} ₿</Text>
                       </>
                     </>
                   )}
@@ -470,7 +470,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <br />
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
-                      <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                      <Text>Balance : {item.bitcoin?.balance.toFixed(8)} ₿</Text>
                     </>
                   )}
                 </StyledPanel>

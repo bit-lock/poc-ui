@@ -23,7 +23,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
   const [withdrawRequestList, setWithdrawRequestList] = useState<any>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 60000);
+    const interval = setInterval(() => setTime(Date.now()), 30000);
     return () => {
       clearInterval(interval);
     };
