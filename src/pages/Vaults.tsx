@@ -35,7 +35,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     address?: string;
     scriptPubkey?: string;
     errorMessage?: string;
-    amount?: number;
+    amount?: string;
     bitcoin?: {
       address: string;
       balance: number;
@@ -44,6 +44,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     };
   }>({
     show: false,
+    amount: "",
   });
 
   // const [selectedUserUtxoSets, setSelectedUserUtxoSets] = useState<UTXO[]>([]);
@@ -174,11 +175,12 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
   };
 
   const withdrawClick = async () => {
+    setWithdrawModalState({ show: false });
     setLoading(true);
 
     const web3Instance = new Web3Lib();
 
-    const amountSats = Math.ceil((withdrawModalState.amount || 0) * BITCOIN_PER_SATOSHI);
+    const amountSats = Math.ceil((Number(withdrawModalState.amount) || 0) * BITCOIN_PER_SATOSHI);
 
     console.log("2", amountSats);
 
@@ -199,7 +201,20 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
 
     let allAmount = vaultBalance - currentFee;
     if (allAmount < 0) allAmount = 0;
-    setWithdrawModalState({ ...withdrawModalState, amount: allAmount });
+    setWithdrawModalState({ ...withdrawModalState, amount: allAmount.toString() });
+  };
+
+  const inputRegex = RegExp(`^\\d*(?:\\\\[.])?\\d{0,8}$`);
+
+  const escapeRegExp = (string: string): string => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
+  const onChangeAmountInput = (e: string) => {
+    const value = e.replace(/,/g, ".");
+    if (value === "" || inputRegex.test(escapeRegExp(value))) {
+      setWithdrawModalState({ ...withdrawModalState, amount: value });
+    }
   };
 
   // const selectUtxo = (utxo: UTXO) => {
@@ -261,7 +276,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
           </Modal.Header>
           <Modal.Body>
             <Text padding="0.3rem" display="block">
-              Bitcoin Balance : {withdrawModalState.bitcoin?.balance}₿{" "}
+              Bitcoin Balance : {withdrawModalState.bitcoin?.balance.toFixed(8)}₿{" "}
             </Text>
             <StyledInputGroup>
               <Input
@@ -281,12 +296,14 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
             {withdrawModalState.errorMessage && <Text color="red">{withdrawModalState.errorMessage}</Text>}
             <AmountInputContainer>
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck="false"
                 placeholder="Amount (decimal)"
-                value={withdrawModalState.amount || ""}
-                onChange={(e: string) => {
-                  setWithdrawModalState({ ...withdrawModalState, amount: Number(e) });
-                }}
+                value={withdrawModalState.amount?.toString() || ""}
+                onChange={(e: string) => onChangeAmountInput(e)}
               />
             </AmountInputContainer>
 
@@ -391,7 +408,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
                       <>
-                        <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                        <Text>Balance : {item.bitcoin?.balance.toFixed(8)} ₿</Text>
                       </>
                     </>
                   )}
@@ -453,7 +470,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
                       <br />
                       <Text>Address : {item.bitcoin?.address}</Text>
                       <br />
-                      <Text>Balance : {item.bitcoin?.balance} ₿</Text>
+                      <Text>Balance : {item.bitcoin?.balance.toFixed(8)} ₿</Text>
                     </>
                   )}
                 </StyledPanel>

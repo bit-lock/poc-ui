@@ -3,9 +3,8 @@ import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
 import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
-import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, fetchUtxos } from "../lib/bitcoin/utils";
 import { VaultState } from "../lib/models/VaultState";
-import { calculateSignCount } from "../lib/utils";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
@@ -23,7 +22,7 @@ export const ViewRequests: React.FC<Props> = ({ account, publicKey, privateKey }
   const [withdrawRequestList, setWithdrawRequestList] = useState<any>([]);
 
   useEffect(() => {
-    const interval = setInterval(() => setTime(Date.now()), 60000);
+    const interval = setInterval(() => setTime(Date.now()), 30000);
     return () => {
       clearInterval(interval);
     };
