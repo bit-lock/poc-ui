@@ -3,9 +3,8 @@ import { Button, Container, Content, FlexboxGrid, Loader, Panel } from "rsuite";
 import styled from "styled-components";
 import { bitcoinTemplateMaker } from "../lib/bitcoin/headerTemplate";
 import { calculateSighashPreimage, signPreimages } from "../lib/bitcoin/preimagecalc";
-import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, calculateTxFees, fetchUtxos } from "../lib/bitcoin/utils";
+import { bitcoinBalanceCalculation, BITCOIN_PER_SATOSHI, fetchUtxos } from "../lib/bitcoin/utils";
 import { VaultState } from "../lib/models/VaultState";
-import { calculateSignCount } from "../lib/utils";
 import { Web3Lib } from "../lib/Web3Lib";
 
 type Props = {
