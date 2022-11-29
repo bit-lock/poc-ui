@@ -78,7 +78,7 @@ export const calculateTxFees = async (utxos: UTXO[], minimumSignatoryCount: numb
 
   const formula = (40 * totalUtxoCount + 16 * totalUtxoCount * minimumSignatoryCount + 10 + 8 + (templateByteSize * totalUtxoCount) / 4 + 87) * fee.fastestFee;
 
-  return Math.round(formula);
+  return Math.round(formula + 10);
 };
 
 export const createDestinationPubkey = (destinationAddress: string) => {
