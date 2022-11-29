@@ -9,7 +9,7 @@ import { utils, arithmetics64, convertion, crypto } from "@script-wiz/lib-core";
 import { decode } from "bs58";
 
 const recomommendedFee = async () => {
-  return axios.get<RecommendedFee>("https://mempool.space/testnet/api/v1/fees/recommended").then((response) => {
+  return axios.get<RecommendedFee>("https://mempool.space/api/v1/fees/recommended").then((response) => {
     return response.data;
   });
 };
