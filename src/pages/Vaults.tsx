@@ -261,6 +261,18 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
     }
   };
 
+  const withdrawValidations = () => {
+    const vaultBalance = withdrawModalState.bitcoin?.balance || 0;
+    const currentFee = (withdrawModalState.bitcoin?.fee || 0) / BITCOIN_PER_SATOSHI;
+
+    const maxValue = vaultBalance - currentFee;
+    const amount = Number(withdrawModalState.amount);
+
+    if (amount > maxValue || amount < 500 / BITCOIN_PER_SATOSHI) return true;
+
+    return !withdrawModalState.amount || !withdrawModalState.address || withdrawModalState.errorMessage;
+  };
+
   const renderWithdrawModal = () => {
     if (withdrawModalState.show) {
       return (
@@ -311,12 +323,7 @@ export const Vaults: React.FC<Props> = ({ account, privateKey }) => {
               All ₿
             </StyledButton>
 
-            <StyledButton
-              onClick={withdrawClick}
-              padding="0.5rem"
-              margin="1rem 0 0 0"
-              disabled={!withdrawModalState.amount || !withdrawModalState.address || withdrawModalState.errorMessage}
-            >
+            <StyledButton onClick={withdrawClick} padding="0.5rem" margin="1rem 0 0 0" disabled={withdrawValidations()}>
               Withdraw ₿
             </StyledButton>
           </Modal.Body>
