@@ -6,6 +6,11 @@ import { createDestinationPubkey } from "./utils";
 // amount satoshi
 export const calculateSighashPreimage = (utxoSet: UTXO[], feeGap: number, vaultAddress: string, destinationScriptPubkey: string, amount: number, script: string) => {
   const sighashPreimage: string[] = [];
+  let userDestinationScriptPubkey = destinationScriptPubkey;
+
+  if (destinationScriptPubkey.startsWith("16")) {
+    userDestinationScriptPubkey = destinationScriptPubkey.substring(0, 46);
+  }
 
   let hasChange: boolean = true;
 
@@ -38,7 +43,7 @@ export const calculateSighashPreimage = (utxoSet: UTXO[], feeGap: number, vaultA
 
     // console.log("sha sequences", calculateShaSequences(utxoSet));
 
-    value += calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, destinationScriptPubkey, amount); //sha outs
+    value += calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, userDestinationScriptPubkey, amount); //sha outs
 
     // console.log("outputs", calculateShaOutputs(feeGap, hasChange, vaultScriptPubkey, destinationScriptPubkey, amount));
 
