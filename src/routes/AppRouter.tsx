@@ -9,8 +9,8 @@ import WizData from "@script-wiz/wiz-data";
 import toastr from "toastr";
 import { Loader } from "rsuite";
 import { ViewRequests } from "../pages/ViewRequests";
-import { EditVault } from "../pages/EditVault";
 import { Header } from "../components/Header";
+import { SignatureTool } from "../pages/SignatureTool";
 
 const message = "Sign this message to log into Bitlock interface.\nWARNING: Only sign this message when you're at bitlock.app.";
 
@@ -21,29 +21,33 @@ export const AppRouter = (): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (typeof window.ethereum !== "undefined") {
-      window.ethereum
-        .enable()
-        .then(() => {
-          window.ethereum.request({ method: "eth_requestAccounts" }).then((accounts: Array<string>) => {
-            window.ethereum
-              .request({ method: "personal_sign", params: [message, accounts[0]] })
-              .then((sgntr: string) => {
-                createKeys(sgntr, accounts[0]);
-                setLoading(false);
-              })
-              .catch((err: any) => toastr.error(err.message));
+    if (window.location?.pathname !== ROUTE_PATH.SIGNATURE_TOOL) {
+      if (typeof window.ethereum !== "undefined") {
+        window.ethereum
+          .enable()
+          .then(() => {
+            window.ethereum.request({ method: "eth_requestAccounts" }).then((accounts: Array<string>) => {
+              window.ethereum
+                .request({ method: "personal_sign", params: [message, accounts[0]] })
+                .then((sgntr: string) => {
+                  createKeys(sgntr, accounts[0]);
+                  setLoading(false);
+                })
+                .catch((err: any) => toastr.error(err.message));
+            });
+          })
+          .catch((error: any) => {
+            if (error.code === 4001) {
+              toastr.error("Please connect to MetaMask.");
+            } else {
+              toastr.error(error.response.data);
+            }
           });
-        })
-        .catch((error: any) => {
-          if (error.code === 4001) {
-            toastr.error("Please connect to MetaMask.");
-          } else {
-            toastr.error(error.response.data);
-          }
-        });
+      } else {
+        window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en");
+      }
     } else {
-      window.open("https://chrome.google.com/webstore/detail/metamask/nkbihfbeogaeaoehlefnkodbefgpgknn?hl=en");
+      setLoading(false);
     }
   }, []);
 
@@ -90,8 +94,8 @@ export const AppRouter = (): JSX.Element => {
           element: <ViewRequests account={account} publicKey={publicKey} privateKey={privateKey} />,
         },
         {
-          path: ROUTE_PATH.EDIT_SIGNATORIES,
-          element: <EditVault account={account} />,
+          path: ROUTE_PATH.SIGNATURE_TOOL,
+          element: <SignatureTool />,
         },
       ],
     },
