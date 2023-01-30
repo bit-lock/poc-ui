@@ -4,9 +4,9 @@ import { Button, Divider, Input, InputGroup, Radio, RadioGroup, Tooltip, Whisper
 
 import CopyIcon from "../Svg/Icons/Copy";
 import "./SignatureTool.scss";
-import Web3 from "web3";
 import secp256k1 from "secp256k1";
 import WizData from "@script-wiz/wiz-data";
+import { crypto } from "@script-wiz/lib-core";
 
 export const SignatureTool = () => {
   const [verifyResult, setVerifyResult] = useState<{ r: string; s: string; v: string; publickey: string }>();
@@ -18,22 +18,19 @@ export const SignatureTool = () => {
   const [message, setMessage] = useState<string>("");
   const [signatureResult, setSignatureResult] = useState<any>();
 
-  const messageSign = () => {
-    const web3 = new Web3();
-    const res = web3.eth.accounts.sign(message, privateKey);
-    setSignatureResult(res);
-  };
-
-  // const verify = () => {
-  //   const web3 = new Web3();
-
-  //   const res = web3.eth.accounts.recover("0x" + messageHash, "0x" + signature);
-  //   console.log("address", res);
-  // };
-
   const buf2hex = (buffer: Uint8Array) => {
     // buffer is an ArrayBuffer
     return [...new Uint8Array(buffer)].map((x) => x.toString(16).padStart(2, "0")).join("");
+  };
+
+  const messageSign = () => {
+    const messageHash = crypto.sha256(WizData.fromHex(message)).toString();
+    const res = secp256k1.ecdsaSign(Buffer.from(messageHash, "hex"), Buffer.from(privateKey, "hex"));
+    const signHex = buf2hex(res.signature);
+    const r = signHex.slice(0, 64);
+    const s = signHex.slice(64, 128);
+
+    setSignatureResult({ sign: signHex + (res.recid === 0 ? "1b" : "1c"), v: res.recid === 0 ? "1b" : "1c", messageHash, r, s });
   };
 
   const ecrecover = () => {
@@ -104,9 +101,9 @@ export const SignatureTool = () => {
                     <h6 className="signature-tools-tab-header">Signature</h6>
                     <div>
                       <InputGroup className="signature-tools-compile-modal-input-group">
-                        <Input value={signatureResult.signature.substring(2)} disabled />
+                        <Input value={signatureResult.sign} disabled />
                         <Whisper placement="top" trigger="click" speaker={<Tooltip>Signature has been copied to clipboard!</Tooltip>}>
-                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.signature.substring(2))}>
+                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.sign)}>
                             <CopyIcon width="1rem" height="1rem" />
                           </InputGroup.Button>
                         </Whisper>
@@ -115,9 +112,9 @@ export const SignatureTool = () => {
                     <h6 className="signature-tools-tab-header">Message Hash</h6>
                     <div>
                       <InputGroup className="signature-tools-compile-modal-input-group">
-                        <Input value={signatureResult.messageHash.substring(2)} disabled />
-                        <Whisper placement="top" trigger="click" speaker={<Tooltip>Signature has been copied to clipboard!</Tooltip>}>
-                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.messageHash.substring(2))}>
+                        <Input value={signatureResult.messageHash} disabled />
+                        <Whisper placement="top" trigger="click" speaker={<Tooltip>Message hash has been copied to clipboard!</Tooltip>}>
+                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.messageHash)}>
                             <CopyIcon width="1rem" height="1rem" />
                           </InputGroup.Button>
                         </Whisper>
@@ -126,9 +123,9 @@ export const SignatureTool = () => {
                     <h6 className="signature-tools-tab-header">R</h6>
                     <div>
                       <InputGroup className="signature-tools-compile-modal-input-group">
-                        <Input value={signatureResult.r.substring(2)} disabled />
+                        <Input value={signatureResult.r} disabled />
                         <Whisper placement="top" trigger="click" speaker={<Tooltip>Signature has been copied to clipboard!</Tooltip>}>
-                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.r.substring(2))}>
+                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.r)}>
                             <CopyIcon width="1rem" height="1rem" />
                           </InputGroup.Button>
                         </Whisper>
@@ -137,9 +134,9 @@ export const SignatureTool = () => {
                     <h6 className="signature-tools-tab-header">S</h6>
                     <div>
                       <InputGroup className="signature-tools-compile-modal-input-group">
-                        <Input value={signatureResult.s.substring(2)} disabled />
+                        <Input value={signatureResult.s} disabled />
                         <Whisper placement="top" trigger="click" speaker={<Tooltip>Signature has been copied to clipboard!</Tooltip>}>
-                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.s.substring(2))}>
+                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.s)}>
                             <CopyIcon width="1rem" height="1rem" />
                           </InputGroup.Button>
                         </Whisper>
@@ -148,9 +145,9 @@ export const SignatureTool = () => {
                     <h6 className="signature-tools-tab-header">V</h6>
                     <div>
                       <InputGroup className="signature-tools-compile-modal-input-group">
-                        <Input value={signatureResult.v.substring(2)} disabled />
+                        <Input value={signatureResult.v} disabled />
                         <Whisper placement="top" trigger="click" speaker={<Tooltip>Signature has been copied to clipboard!</Tooltip>}>
-                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.v.substring(2))}>
+                          <InputGroup.Button onClick={() => navigator.clipboard.writeText(signatureResult.v)}>
                             <CopyIcon width="1rem" height="1rem" />
                           </InputGroup.Button>
                         </Whisper>
