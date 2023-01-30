@@ -43,9 +43,9 @@ export const SignatureTool = () => {
         throw new Error("Invalid signature v value");
       }
 
-      console.log("signature", signature.slice(0, 128));
+      const msgHash = crypto.sha256(WizData.fromHex(message)).toString();
       const si = Buffer.from(signature.slice(0, 128), "hex");
-      const m = Buffer.from(messageHash, "hex");
+      const m = Buffer.from(msgHash, "hex");
       const senderPubKey = secp256k1.ecdsaRecover(si, recovery, m);
 
       const pubkey = buf2hex(senderPubKey);
@@ -86,7 +86,7 @@ export const SignatureTool = () => {
                   </div>
                 </div>
                 <div className="signature-tools-result-item">
-                  <h6 className="signature-tools-tab-header">Message</h6>
+                  <h6 className="signature-tools-tab-header">Message (hex)</h6>
                   <div>
                     <Input className="signature-tools-main-input" type="text" value={message} onChange={(value: string) => setMessage(value.replace(/\s/g, ""))} />
                   </div>
@@ -161,7 +161,7 @@ export const SignatureTool = () => {
             {tab === 1 && (
               <>
                 <div className="signature-tools-result-item">
-                  <h6 className="signature-tools-tab-header">Message Hash (hex)</h6>
+                  <h6 className="signature-tools-tab-header">Message (hex)</h6>
                   <div>
                     <Input className="signature-tools-main-input" type="text" value={messageHash} onChange={(value: string) => setMessageHash(value.replace(/\s/g, ""))} />
                   </div>
