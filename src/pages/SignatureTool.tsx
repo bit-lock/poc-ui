@@ -10,7 +10,6 @@ import { crypto } from "@script-wiz/lib-core";
 
 export const SignatureTool = () => {
   const [verifyResult, setVerifyResult] = useState<{ r: string; s: string; v: string; publickey: string }>();
-  const [messageHash, setMessageHash] = useState<string>("");
   const [signature, setSignature] = useState<string>("");
   const [tab, setTab] = useState(0);
 
@@ -44,6 +43,7 @@ export const SignatureTool = () => {
       }
 
       const msgHash = crypto.sha256(WizData.fromHex(message)).toString();
+      console.log(msgHash);
       const si = Buffer.from(signature.slice(0, 128), "hex");
       const m = Buffer.from(msgHash, "hex");
       const senderPubKey = secp256k1.ecdsaRecover(si, recovery, m);
@@ -163,7 +163,7 @@ export const SignatureTool = () => {
                 <div className="signature-tools-result-item">
                   <h6 className="signature-tools-tab-header">Message (hex)</h6>
                   <div>
-                    <Input className="signature-tools-main-input" type="text" value={messageHash} onChange={(value: string) => setMessageHash(value.replace(/\s/g, ""))} />
+                    <Input className="signature-tools-main-input" type="text" value={message} onChange={(value: string) => setMessage(value.replace(/\s/g, ""))} />
                   </div>
                 </div>
                 <div className="signature-tools-result-item">
@@ -172,7 +172,7 @@ export const SignatureTool = () => {
                     <Input className="signature-tools-main-input" type="text" value={signature} onChange={(value: string) => setSignature(value.replace(/\s/g, ""))} />
                   </div>
                 </div>
-                <Button className="signature-tools-button" appearance="primary" size="md" onClick={ecrecover} disabled={!messageHash || !signature}>
+                <Button className="signature-tools-button" appearance="primary" size="md" onClick={ecrecover} disabled={!message || !signature}>
                   Verify
                 </Button>
 
